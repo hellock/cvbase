@@ -17,9 +17,9 @@ def bbox_transform_inv(bboxes, deltas):
     gw = bboxes[..., 2] - bboxes[..., 0] + 1
     gh = bboxes[..., 3] - bboxes[..., 1] + 1
     pw = gw[..., np.newaxis] * np.exp(deltas[..., 2::4])
-    ph = gh * np.exp(deltas[..., 3::4])
-    px = gx + deltas[..., 0::4] * pw
-    py = gy + deltas[..., 1::4] * ph
+    ph = gh[..., np.newaxis] * np.exp(deltas[..., 3::4])
+    px = gx[..., np.newaxis] + deltas[..., 0::4] * pw
+    py = gy[..., np.newaxis] + deltas[..., 1::4] * ph
     return np.stack(
         (px - pw / 2, py - ph / 2, px + pw / 2, py + ph / 2), axis=-1)
 
@@ -31,14 +31,14 @@ def clip_bboxes(bboxes, img_shape):
         bboxes(ndarray): shape (..., 4)
         img_shape(tuple): (height, width)
     """
-    bboxes[..., 0] = np.maximum(
-        np.minimum(bboxes[..., 0], img_shape[1] - 1), 0)
-    bboxes[..., 1] = np.maximum(
-        np.minimum(bboxes[..., 1], img_shape[0] - 1), 0)
-    bboxes[..., 2] = np.maximum(
-        np.minimum(bboxes[..., 2], img_shape[1] - 1), 0)
-    bboxes[..., 3] = np.maximum(
-        np.minimum(bboxes[..., 3], img_shape[0] - 1), 0)
+    bboxes[..., 0::4] = np.maximum(
+        np.minimum(bboxes[..., 0::4], img_shape[1] - 1), 0)
+    bboxes[..., 1::4] = np.maximum(
+        np.minimum(bboxes[..., 1::4], img_shape[0] - 1), 0)
+    bboxes[..., 2::4] = np.maximum(
+        np.minimum(bboxes[..., 2::4], img_shape[1] - 1), 0)
+    bboxes[..., 3::4] = np.maximum(
+        np.minimum(bboxes[..., 3::4], img_shape[0] - 1), 0)
     return bboxes
 
 

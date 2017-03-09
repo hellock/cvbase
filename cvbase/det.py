@@ -7,16 +7,16 @@ def bbox_transform_inv(bboxes, deltas):
     pw = gw * exp(dw), px = gx + dx * pw
 
     Args:
-        bboxes(ndarray): shape (..., 4*k) [x1, y1, x2, y2]
-        bboxes(ndarray): shape (..., 4*k) [x1, y1, x2, y2]
+        bboxes(ndarray): shape (..., 4) [x1, y1, x2, y2]
+        deltas(ndarray): shape (..., 4*k) [dx, dy, dw, dh]
     Output:
         ndarray: same shape as input bboxes
     """
-    gx = (bboxes[..., 0::4] + bboxes[..., 2::4]) / 2
-    gy = (bboxes[..., 1::4] + bboxes[..., 3::4]) / 2
-    gw = bboxes[..., 2::4] - bboxes[..., 0::4] + 1
-    gh = bboxes[..., 3::4] - bboxes[..., 1::4] + 1
-    pw = gw * np.exp(deltas[..., 2::4])
+    gx = (bboxes[..., 0] + bboxes[..., 2]) / 2
+    gy = (bboxes[..., 1] + bboxes[..., 3]) / 2
+    gw = bboxes[..., 2] - bboxes[..., 0] + 1
+    gh = bboxes[..., 3] - bboxes[..., 1] + 1
+    pw = gw[..., np.newaxis] * np.exp(deltas[..., 2::4])
     ph = gh * np.exp(deltas[..., 3::4])
     px = gx + deltas[..., 0::4] * pw
     py = gy + deltas[..., 1::4] * ph

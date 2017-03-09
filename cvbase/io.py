@@ -4,6 +4,10 @@ try:
 except:
     import pickle
 from multiprocessing import Process, Queue
+from os import path
+
+import cv2
+import numpy as np
 
 
 def json_dump(obj, filename, **kwargs):
@@ -42,3 +46,15 @@ class AsyncDumper(Process):
 
     def dump(self, obj, filename):
         self._io_queue.put((obj, filename))
+
+
+def read_img(img):
+    if isinstance(img, np.ndarray):
+        return img
+    elif isinstance(img, str):
+        if path.isfile(img):
+            return cv2.imread(img)
+        else:
+            raise IOError('img file does not exist: {}'.format(img))
+    else:
+        raise TypeError('"img" must be a numpy array or a filename')

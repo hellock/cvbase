@@ -30,6 +30,7 @@ setup(
     author_email='chenkaidev@gmail.com',
     license='MIT',
     install_requires=[
+        'numpy>=1.11.0',
         'six>=1.10.0'
     ],
     zip_safe=False

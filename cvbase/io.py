@@ -1,4 +1,6 @@
 import json
+import os
+import sys
 try:
     import cPickle as pickle
 except:
@@ -33,6 +35,7 @@ def pickle_load(filename):
 
 
 class AsyncDumper(Process):
+
     def __init__(self):
         self._io_queue = Queue()
         super(AsyncDumper, self).__init__()
@@ -48,13 +51,51 @@ class AsyncDumper(Process):
         self._io_queue.put((obj, filename))
 
 
+def check_file_exist(filename, msg):
+    if not os.path.isfile(filename):
+        try:
+            raise FileNotFoundError(msg)
+        except:
+            raise IOError(msg)
+
+
+def _scandir_py35(dir_path='.', ext=None):
+    if isinstance(ext, str):
+        ext = [ext]
+    for entry in os.scandir(dir_path):
+        if not entry.is_file():
+            continue
+        filename = entry.name
+        if ext is None:
+            yield filename
+        elif filename.split('.')[-1] in ext:
+            yield filename
+
+
+def _scandir_py(dir_path='.', ext=None):
+    if isinstance(ext, str):
+        ext = [ext]
+    for filename in os.listdir(dir_path):
+        if not path.isfile(path.join(dir_path, filename)):
+            continue
+        if ext is None:
+            yield filename
+        elif filename.split('.')[-1] in ext:
+            yield filename
+
+
+def scandir(dir_path='.', ext=None):
+    if sys.version[0] == 3 and sys.version[1] >= 5:
+        return _scandir_py35(dir_path, ext)
+    else:
+        return _scandir_py(dir_path, ext)
+
+
 def read_img(img):
     if isinstance(img, np.ndarray):
         return img
     elif isinstance(img, str):
-        if path.isfile(img):
-            return cv2.imread(img)
-        else:
-            raise IOError('img file does not exist: {}'.format(img))
+        check_file_exist(img, 'img file does not exist: {}'.format(img))
+        return cv2.imread(img)
     else:
         raise TypeError('"img" must be a numpy array or a filename')

@@ -14,16 +14,19 @@ def bbox_transform_inv(bboxes, deltas):
     """
     assert bboxes.shape[-1] == 4
     assert deltas.shape[-1] % 4 == 0
-    gx = (bboxes[..., 0] + bboxes[..., 2]) / 2
-    gy = (bboxes[..., 1] + bboxes[..., 3]) / 2
-    gw = bboxes[..., 2] - bboxes[..., 0] + 1
-    gh = bboxes[..., 3] - bboxes[..., 1] + 1
+    gx = (bboxes[..., 0] + bboxes[..., 2]) * 0.5
+    gy = (bboxes[..., 1] + bboxes[..., 3]) * 0.5
+    gw = bboxes[..., 2] - bboxes[..., 0] + 1.0
+    gh = bboxes[..., 3] - bboxes[..., 1] + 1.0
     pw = gw[..., np.newaxis] * np.exp(deltas[..., 2::4])
     ph = gh[..., np.newaxis] * np.exp(deltas[..., 3::4])
     px = gx[..., np.newaxis] + deltas[..., 0::4] * pw
     py = gy[..., np.newaxis] + deltas[..., 1::4] * ph
-    return np.concatenate(
-        (px - pw / 2, py - ph / 2, px + pw / 2, py + ph / 2), axis=-1)
+    shape = list(px.shape)
+    shape[-1] = shape[-1] * 4
+    return np.stack(
+        (px - pw * 0.5, py - ph * 0.5, px + pw * 0.5, py + ph * 0.5),
+        axis=-1).reshape(tuple(shape))
 
 
 def clip_bboxes(bboxes, img_shape):

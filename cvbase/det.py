@@ -12,6 +12,8 @@ def bbox_transform_inv(bboxes, deltas):
     Output:
         ndarray: same shape as input bboxes
     """
+    assert bboxes.shape[-1] == 4
+    assert deltas.shape[-1] % 4 == 0
     gx = (bboxes[..., 0] + bboxes[..., 2]) / 2
     gy = (bboxes[..., 1] + bboxes[..., 3]) / 2
     gw = bboxes[..., 2] - bboxes[..., 0] + 1
@@ -20,7 +22,7 @@ def bbox_transform_inv(bboxes, deltas):
     ph = gh[..., np.newaxis] * np.exp(deltas[..., 3::4])
     px = gx[..., np.newaxis] + deltas[..., 0::4] * pw
     py = gy[..., np.newaxis] + deltas[..., 1::4] * ph
-    return np.stack(
+    return np.concatenate(
         (px - pw / 2, py - ph / 2, px + pw / 2, py + ph / 2), axis=-1)
 
 
@@ -28,9 +30,10 @@ def clip_bboxes(bboxes, img_shape):
     """limit bboxes to fit the image size
 
     Args:
-        bboxes(ndarray): shape (..., 4)
+        bboxes(ndarray): shape (..., 4*k)
         img_shape(tuple): (height, width)
     """
+    assert bboxes.shape[-1] % 4 == 0
     bboxes[..., 0::4] = np.maximum(
         np.minimum(bboxes[..., 0::4], img_shape[1] - 1), 0)
     bboxes[..., 1::4] = np.maximum(

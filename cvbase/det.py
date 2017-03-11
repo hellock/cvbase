@@ -1,6 +1,37 @@
 import numpy as np
 
 
+def bbox_transform(proposals, gt):
+    """calculate regression deltas from proposals and ground truths
+
+    dx = (gx - px) / pw, dw = log(gw / pw)
+
+    Args:
+        proposals(ndarray): shape (k, 4)
+        gt(ndarray): shape (1, 4) or (k, 4)
+    Output:
+        ndarray: same shape as proposals
+    """
+    if proposals.shape[0] == 0:
+        return np.zeros_like(proposals)
+    px = (proposals[:, 0] + proposals[:, 2]) * 0.5  # px
+    py = (proposals[:, 1] + proposals[:, 3]) * 0.5  # py
+    pw = proposals[:, 2] - proposals[:, 0] + 1  # pw
+    ph = proposals[:, 3] - proposals[:, 1] + 1  # ph
+
+    gx = (gt[:, 0] + gt[:, 2]) * 0.5  # gx
+    gy = (gt[:, 1] + gt[:, 3]) * 0.5  # gy
+    gw = gt[:, 2] - gt[:, 0] + 1  # gw
+    gh = gt[:, 3] - gt[:, 1] + 1  # gh
+
+    tx = (gx - px) / pw
+    ty = (gy - py) / ph
+    tw = np.log(gw / pw)
+    th = np.log(gh / ph)
+    deltas = np.vstack((tx, ty, tw, th)).T
+    return deltas
+
+
 def bbox_transform_inv(bboxes, deltas):
     """get prediction bboxes from input bboxes and deltas
 

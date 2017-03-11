@@ -13,12 +13,12 @@ import numpy as np
 
 
 def json_dump(obj, filename, **kwargs):
-    with open(filename, 'wb') as f:
+    with open(filename, 'w') as f:
         json.dump(obj, f, **kwargs)
 
 
 def json_load(filename):
-    with open(filename, 'rb') as f:
+    with open(filename, 'r') as f:
         obj = json.load(f)
     return obj
 
@@ -28,9 +28,9 @@ def pickle_dump(obj, filename, protocol=2, **kwargs):
         pickle.dump(obj, f, protocol=protocol, **kwargs)
 
 
-def pickle_load(filename):
+def pickle_load(filename, **kwargs):
     with open(filename, 'rb') as f:
-        obj = pickle.load(f)
+        obj = pickle.load(f, **kwargs)
     return obj
 
 
@@ -52,14 +52,19 @@ class AsyncDumper(Process):
 
 
 def check_file_exist(filename, msg):
-    if not os.path.isfile(filename):
+    if not path.isfile(filename):
         try:
             raise FileNotFoundError(msg)
         except:
             raise IOError(msg)
 
 
-def _scandir_py35(dir_path='.', ext=None):
+def mkdir_or_exist(dir_name):
+    if not path.isdir(dir_name):
+        os.makedirs(dir_name)
+
+
+def _scandir_py35(dir_path, ext=None):
     if isinstance(ext, str):
         ext = [ext]
     for entry in os.scandir(dir_path):
@@ -72,7 +77,7 @@ def _scandir_py35(dir_path='.', ext=None):
             yield filename
 
 
-def _scandir_py(dir_path='.', ext=None):
+def _scandir_py(dir_path, ext=None):
     if isinstance(ext, str):
         ext = [ext]
     for filename in os.listdir(dir_path):
@@ -84,7 +89,7 @@ def _scandir_py(dir_path='.', ext=None):
             yield filename
 
 
-def scandir(dir_path='.', ext=None):
+def scandir(dir_path, ext=None):
     if sys.version[0] == 3 and sys.version[1] >= 5:
         return _scandir_py35(dir_path, ext)
     else:

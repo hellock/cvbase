@@ -1,20 +1,22 @@
-import os
 from collections import OrderedDict
+from os import makedirs, path
 
 import cv2
 
-from cvbase.io import check_file_exist, scandir
+from cvbase.io import check_file_exist, mkdir_or_exist, scandir
 from cvbase.opencv import USE_OPENCV3
 
 if USE_OPENCV3:
     from cv2 import (CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FPS,
-                     CAP_PROP_FRAME_COUNT, CAP_PROP_FOURCC, VideoWriter_fourcc)
+                     CAP_PROP_FRAME_COUNT, CAP_PROP_FOURCC,
+                     CAP_PROP_POS_FRAMES, VideoWriter_fourcc)
 else:
     import cv2.cv.CV_CAP_PROP_FRAME_WIDTH as CAP_PROP_FRAME_WIDTH
     import cv2.cv.CV_CAP_PROP_FRAME_HEIGHT as CAP_PROP_FRAME_HEIGHT
     import cv2.cv.CV_CAP_PROP_FPS as CAP_PROP_FPS
     import cv2.cv.CV_CAP_PROP_FRAME_COUNT as CAP_PROP_FRAME_COUNT
     import cv2.cv.CV_CAP_PROP_FOURCC as CAP_PROP_FOURCC
+    import cv2.cv.CV_CAP_PROP_POS_FRAMES as CAP_PROP_POS_FRAMES
     import cv2.cv.CV_FOURCC as VideoWriter_fourcc
 
 
@@ -41,11 +43,9 @@ class Cache(object):
             self._cache.popitem(last=False)
         self._cache[key] = val
 
-    def get(self, key):
-        if key in self._cache:
-            return self._cache[key]
-        else:
-            return None
+    def get(self, key, default=None):
+        val = self._cache[key] if key in self._cache else default
+        return val
 
 
 class VideoReader(object):
@@ -91,26 +91,20 @@ class VideoReader(object):
         return self._position
 
     def _get_real_position(self):
-        if USE_OPENCV3:
-            return int(round(self._vcap.get(cv2.CAP_PROP_POS_FRAMES)))
-        else:
-            return int(round(self._vcap.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)))
+        return int(round(self._vcap.get(CAP_PROP_POS_FRAMES)))
 
     def _set_real_position(self, frame_id):
-        if USE_OPENCV3:
-            self._vcap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-        else:
-            self._vcap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, frame_id)
+        self._vcap.set(CAP_PROP_POS_FRAMES, frame_id)
         pos = self._get_real_position()
-        for i in range(frame_id - pos):
+        for _ in range(frame_id - pos):
             self._vcap.read()
         self._position = frame_id
 
     def read(self):
         pos = self._position + 1
-        if self._cache is not None:
+        if self._cache:
             img = self._cache.get(pos)
-            if img is not None:
+            if img:
                 ret = True
             else:
                 if self._position != self._get_real_position():
@@ -129,16 +123,16 @@ class VideoReader(object):
             raise ValueError('frame_id must be between 1 and frame_cnt')
         if frame_id == self._position + 1:
             return self.read()
-        if self._cache is not None:
+        if self._cache:
             img = self._cache.get(frame_id)
-            if img is not None:
+            if img:
                 self._position = frame_id
                 return (True, img)
         self._set_real_position(frame_id - 1)
         ret, img = self._vcap.read()
         if ret:
             self._position += 1
-            if self._cache is not None:
+            if self._cache:
                 self._cache.put(self._position, img)
         return (ret, img)
 
@@ -150,13 +144,12 @@ class VideoReader(object):
     def cvt2frames(self,
                    frame_dir,
                    file_start=0,
-                   filename_digit=5,
+                   filename_digit=6,
                    ext='jpg',
                    start=0,
                    max_num=0,
                    print_interval=0):
-        if not os.path.isdir(frame_dir):
-            os.makedirs(frame_dir)
+        mkdir_or_exist(frame_dir)
         if max_num == 0:
             task_num = self.frame_cnt - start
         else:
@@ -171,7 +164,7 @@ class VideoReader(object):
             if not ret:
                 break
             file_idx = converted + file_start
-            filename = os.path.join(
+            filename = path.join(
                 frame_dir,
                 '{0:0{1}d}.{2}'.format(file_idx, filename_digit, ext))
             cv2.imwrite(filename, img)
@@ -202,9 +195,9 @@ def frames2video(frame_dir,
                  video_file,
                  fps=30,
                  fourcc='XVID',
-                 filename_digit=5,
+                 filename_digit=6,
                  ext='jpg',
-                 start=1,
+                 start=0,
                  end=0):
     """read the frame images from a directory and join them as a video
     """
@@ -212,8 +205,8 @@ def frames2video(frame_dir,
         max_idx = len([name for name in scandir(frame_dir, ext)]) - 1
     else:
         max_idx = end
-    first_file = os.path.join(
-        frame_dir, '{0:0{1}d}.{2}'.format(start, filename_digit, ext))
+    first_file = path.join(frame_dir,
+                           '{0:0{1}d}.{2}'.format(start, filename_digit, ext))
     check_file_exist(first_file, 'The start frame not found: ' + first_file)
     img = cv2.imread(first_file)
     height, width = img.shape[:2]
@@ -222,8 +215,8 @@ def frames2video(frame_dir,
                               (width, height))
     idx = start
     while idx <= max_idx:
-        filename = os.path.join(
-            frame_dir, '{0:0{1}d}.{2}'.format(idx, filename_digit, ext))
+        filename = path.join(frame_dir,
+                             '{0:0{1}d}.{2}'.format(idx, filename_digit, ext))
         img = cv2.imread(filename)
         vwriter.write(img)
         idx += 1

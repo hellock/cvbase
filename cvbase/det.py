@@ -38,7 +38,6 @@ def bbox_transform(proposals, gt):
         (tx[..., np.newaxis], ty[..., np.newaxis], tw[..., np.newaxis],
          th[..., np.newaxis]),
         axis=-1)
-    # deltas = np.vstack((tx, ty, tw, th)).T
     return deltas
 
 
@@ -98,24 +97,24 @@ def bbox_overlaps(bboxes1, bboxes2):
     Output:
         ious(ndarray): shape (n, k)
     """
-    _boxes1 = bboxes1.astype(np.float32)
-    _boxes2 = bboxes2.astype(np.float32)
-    rows = _boxes1.shape[0]
-    cols = _boxes2.shape[0]
+    bboxes1 = bboxes1.astype(np.float32)
+    bboxes2 = bboxes2.astype(np.float32)
+    rows = bboxes1.shape[0]
+    cols = bboxes2.shape[0]
     ious = np.zeros((rows, cols), dtype=np.float32)
     if rows * cols == 0:
         return ious
-    for i in range(_boxes1.shape[0]):
-        x_start = np.maximum(_boxes1[i, 0], _boxes2[:, 0])
-        y_start = np.maximum(_boxes1[i, 1], _boxes2[:, 1])
-        x_end = np.minimum(_boxes1[i, 2], _boxes2[:, 2])
-        y_end = np.minimum(_boxes1[i, 3], _boxes2[:, 3])
+    for i in range(bboxes1.shape[0]):
+        x_start = np.maximum(bboxes1[i, 0], bboxes2[:, 0])
+        y_start = np.maximum(bboxes1[i, 1], bboxes2[:, 1])
+        x_end = np.minimum(bboxes1[i, 2], bboxes2[:, 2])
+        y_end = np.minimum(bboxes1[i, 3], bboxes2[:, 3])
         overlap = (np.maximum(x_end - x_start + 1, 0) *
                    np.maximum(y_end - y_start + 1, 0))
-        area1 = (_boxes1[i, 2] - _boxes1[i, 0] + 1) * (
-            _boxes1[i, 3] - _boxes1[i, 1] + 1)
-        area2 = (_boxes2[:, 2] - _boxes2[:, 0] + 1) * (
-            _boxes2[:, 3] - _boxes2[:, 1] + 1)
+        area1 = (bboxes1[i, 2] - bboxes1[i, 0] + 1) * (
+            bboxes1[i, 3] - bboxes1[i, 1] + 1)
+        area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
+            bboxes2[:, 3] - bboxes2[:, 1] + 1)
         union = area1 + area2 - overlap
         ious[i, :] = overlap / union
     return ious
@@ -133,7 +132,7 @@ def _recalls(all_ious, proposal_nums=None, thrs=None):
     img_num = all_ious.shape[0]
     total_gt_num = sum([ious.shape[0] for ious in all_ious])
 
-    _ious = np.zeros((proposal_nums.size, total_gt_num))
+    _ious = np.zeros((proposal_nums.size, total_gt_num), dtype=np.float32)
     for k, proposal_num in enumerate(proposal_nums):
         tmp_ious = np.zeros(0)
         for i in range(img_num):
@@ -153,7 +152,7 @@ def _recalls(all_ious, proposal_nums=None, thrs=None):
     _ious = np.fliplr(np.sort(_ious, axis=1))
     recalls = np.zeros((proposal_nums.size, thrs.size))
     for i, thr in enumerate(thrs):
-        recalls[:, i] = (_ious > thr).sum(axis=1) / float(total_gt_num)
+        recalls[:, i] = (_ious >= thr).sum(axis=1) / float(total_gt_num)
 
     return recalls
 
@@ -187,7 +186,7 @@ def bbox_recalls(gts, proposals, proposal_nums=None, thrs=None):
     for i in range(img_num):
         prop_num = min(proposals[i].shape[0], proposal_nums[-1])
         if gts[i] is None or gts[i].shape[0] == 0:
-            ious = np.zeros((0, proposals[i].shape[0]))
+            ious = np.zeros((0, proposals[i].shape[0]), dtype=np.float32)
         else:
             ious = bbox_overlaps(gts[i], proposals[i][:prop_num, :4])
         all_ious.append(ious)

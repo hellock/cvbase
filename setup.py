@@ -8,7 +8,7 @@ def readme():
 
 setup(
     name='cvbase',
-    version='0.0.4',
+    version='0.0.5',
     description='Utils for computer vision research',
     long_description=readme(),
     keywords='computer vision',
@@ -29,9 +29,8 @@ setup(
     author='Kai Chen',
     author_email='chenkaidev@gmail.com',
     license='MIT',
-    install_requires=[
-        'numpy>=1.11.0',
-        'six>=1.10.0'
-    ],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
+    install_requires=['numpy>=1.11.0'],
     zip_safe=False
 )  # yapf: disable

@@ -12,8 +12,8 @@ def bbox_transform(proposals, gt):
     Output:
         ndarray: same shape as proposals
     """
-    if proposals.shape[0] == 0:
-        return np.zeros_like(proposals)
+    proposals = proposals.astype(np.float32)
+    gt = gt.astype(np.float32)
     px = (proposals[:, 0] + proposals[:, 2]) * 0.5  # px
     py = (proposals[:, 1] + proposals[:, 3]) * 0.5  # py
     pw = proposals[:, 2] - proposals[:, 0] + 1  # pw

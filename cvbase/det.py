@@ -7,28 +7,38 @@ def bbox_transform(proposals, gt):
     dx = (gx - px) / pw, dw = log(gw / pw)
 
     Args:
-        proposals(ndarray): shape (k, 4)
-        gt(ndarray): shape (1, 4) or (k, 4)
+        proposals(ndarray): shape (..., 4)
+        gt(ndarray): shape (..., 4) or (1.., 4)
     Output:
         ndarray: same shape as proposals
     """
+    assert proposals.ndim == gt.ndim
+    if gt.shape[0] == 1:
+        shape = [1 for _ in range(proposals.ndim)]
+        shape[0] = proposals.shape[0]
+        gt = np.tile(gt, tuple(shape))
+    assert proposals.shape == gt.shape
     proposals = proposals.astype(np.float32)
     gt = gt.astype(np.float32)
-    px = (proposals[:, 0] + proposals[:, 2]) * 0.5  # px
-    py = (proposals[:, 1] + proposals[:, 3]) * 0.5  # py
-    pw = proposals[:, 2] - proposals[:, 0] + 1  # pw
-    ph = proposals[:, 3] - proposals[:, 1] + 1  # ph
+    px = (proposals[..., 0] + proposals[..., 2]) * 0.5  # px
+    py = (proposals[..., 1] + proposals[..., 3]) * 0.5  # py
+    pw = proposals[..., 2] - proposals[..., 0] + 1.0  # pw
+    ph = proposals[..., 3] - proposals[..., 1] + 1.0  # ph
 
-    gx = (gt[:, 0] + gt[:, 2]) * 0.5  # gx
-    gy = (gt[:, 1] + gt[:, 3]) * 0.5  # gy
-    gw = gt[:, 2] - gt[:, 0] + 1  # gw
-    gh = gt[:, 3] - gt[:, 1] + 1  # gh
+    gx = (gt[..., 0] + gt[..., 2]) * 0.5  # gx
+    gy = (gt[..., 1] + gt[..., 3]) * 0.5  # gy
+    gw = gt[..., 2] - gt[..., 0] + 1.0  # gw
+    gh = gt[..., 3] - gt[..., 1] + 1.0  # gh
 
     tx = (gx - px) / pw
     ty = (gy - py) / ph
     tw = np.log(gw / pw)
     th = np.log(gh / ph)
-    deltas = np.vstack((tx, ty, tw, th)).T
+    deltas = np.concatenate(
+        (tx[..., np.newaxis], ty[..., np.newaxis], tw[..., np.newaxis],
+         th[..., np.newaxis]),
+        axis=-1)
+    # deltas = np.vstack((tx, ty, tw, th)).T
     return deltas
 
 

@@ -34,7 +34,7 @@ def draw_bboxes(img, bboxes, colors=Color.green, top_k=0, thickness=1,
     img = read_img(img)
     if isinstance(bboxes, np.ndarray):
         bboxes = [bboxes]
-    if isinstance(colors, [tuple, Color]):
+    if isinstance(colors, (tuple, Color)):
         colors = [colors for _ in range(len(bboxes))]
     for i in range(len(colors)):
         if isinstance(colors[i], Color):

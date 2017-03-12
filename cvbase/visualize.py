@@ -7,19 +7,38 @@ from cvbase.io import read_img
 
 
 class Color(Enum):
-    RED = (0, 0, 255)
-    GREEN = (0, 255, 0)
-    BLUE = (255, 0, 0)
-    WHITE = (255, 255, 255)
+    red = (0, 0, 255)
+    green = (0, 255, 0)
+    blue = (255, 0, 0)
+    cyan = (255, 255, 0)
+    yellow = (0, 255, 255)
+    magenta = (255, 0, 255)
+    white = (255, 255, 255)
+    black = (0, 0, 0)
 
 
-def draw_bboxes(img, bboxes, colors=Color.GREEN, top_k=0, thickness=1,
+def draw_bboxes(img, bboxes, colors=Color.green, top_k=0, thickness=1,
                 show=True, win_name='', wait_time=0, out_file=None):  # yapf: disable
+    """Draw bboxes in image
+    Args:
+        img(str or ndarray): the image to be shown
+        bboxes(list or ndarray): a list of ndarray of shape (k, 4)
+        colors(list or Color or tuple): a list of colors, corresponding to bboxes
+        top_k(int): draw top_k bboxes only if positive
+        thickness(int): thickness of lines
+        show(bool): whether to show the image
+        win_name(str): the window name
+        wait_time(int): value of waitKey param
+        out_file(str or None): the filename to write the image
+    """
     img = read_img(img)
     if isinstance(bboxes, np.ndarray):
         bboxes = [bboxes]
-    if isinstance(colors, tuple):
+    if isinstance(colors, [tuple, Color]):
         colors = [colors for _ in range(len(bboxes))]
+    for i in range(len(colors)):
+        if isinstance(colors[i], Color):
+            colors[i] = colors[i].value
     assert len(bboxes) == len(colors)
 
     for i, _bboxes in enumerate(bboxes):

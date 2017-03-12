@@ -1,10 +1,19 @@
+from enum import Enum
+
 import cv2
 import numpy as np
 
 from cvbase.io import read_img
 
 
-def draw_bboxes(img, bboxes, colors=(0, 255, 0), top_k=0, thickness=1,
+class Color(Enum):
+    RED = (0, 0, 255)
+    GREEN = (0, 255, 0)
+    BLUE = (255, 0, 0)
+    WHITE = (255, 255, 255)
+
+
+def draw_bboxes(img, bboxes, colors=Color.GREEN, top_k=0, thickness=1,
                 show=True, win_name='', wait_time=0, out_file=None):  # yapf: disable
     img = read_img(img)
     if isinstance(bboxes, np.ndarray):

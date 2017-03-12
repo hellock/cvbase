@@ -193,3 +193,94 @@ def bbox_recalls(gts, proposals, proposal_nums=None, thrs=None):
     all_ious = np.array(all_ious)
 
     return _recalls(all_ious, proposal_nums, thrs)
+
+
+def average_precision(recall, precision):
+    """Calculate average precision
+    """
+    mrec = np.concatenate(([0.], recall, [1.]))
+    mpre = np.concatenate(([0.], precision, [0.]))
+    for i in range(mpre.shape[0] - 1, 0, -1):
+        mpre[i - 1] = np.maximum(mpre[i - 1], mpre[i])
+    idx = np.where(mrec[1:] != mrec[:-1])[0]
+    ap = np.sum((mrec[idx + 1] - mrec[idx]) * mpre[idx + 1])
+    return ap
+
+
+def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5):
+    """Evaluate mAP of a dataset
+
+    Args:
+        det_results(list): a list of list, [[cls1, cls2], [cls1, cls2], ...]
+        gt_bboxes(list): ground truth bboxes of each image
+        gt_labels(list): ground truth labels of each image
+        iou_thr(float): IoU threshold
+        out_file(str or None): filename to save all precisions and recalls
+    Output:
+        tuple: (mAP, [dict, dict, ...])
+    """
+    eval_results = []
+    cls_num = len(det_results[0])  # positive class num
+    for i in range(cls_num):  # for each class
+        dets = [det[i] for det in det_results]
+        gts = [
+            bbox[label == i + 1, :]
+            for bbox, label in zip(gt_bboxes, gt_labels)
+        ]
+        gt_num = sum([gt.shape[0] for gt in gts])
+        img_idxs = [
+            i * np.ones(det.shape[0], dtype=np.int32)
+            for i, det in enumerate(dets)
+        ]
+        dets = np.vstack(dets)
+        img_idxs = np.concatenate(img_idxs)
+        # sort all detections by scores in descending order
+        sort_idx = np.argsort(dets[:, -1])[::-1]
+        dets = dets[sort_idx, :]
+        img_idxs = img_idxs[sort_idx]
+        covered = [np.zeros(gt.shape[0], dtype=np.int32) for gt in gts]
+        det_num = dets.shape[0]
+        fp = np.zeros(det_num, dtype=np.float32)
+        tp = np.zeros(det_num, dtype=np.float32)
+        # for each det bbox, check if it is a true positive
+        for j in range(det_num):
+            img_idx = img_idxs[j]
+            if gts[img_idx].shape[0] == 0:
+                fp[j] = 1
+                continue
+            ious = bbox_overlaps(dets[np.newaxis, j, :], gts[img_idx])
+            if ious.max() > iou_thr and covered[img_idx][ious.argmax()] == 0:
+                covered[img_idx][ious.argmax()] = 1
+                tp[j] = 1
+            else:
+                fp[j] = 1
+        tp = np.cumsum(tp)
+        fp = np.cumsum(fp)
+        eps = np.finfo(np.float32).eps
+        recall = tp / np.maximum(float(gt_num), eps)
+        precision = tp / np.maximum((tp + fp), eps)
+        ap = average_precision(recall, precision)
+        eval_results.append({
+            'gt_num': gt_num,
+            'det_num': det_num,
+            'recall': recall,
+            'precision': precision,
+            'ap': ap
+        })
+    aps = []
+    for cls_result in eval_results:
+        if cls_result['gt_num'] > 0:
+            aps.append(cls_result['ap'])
+    return np.array(aps).mean(), eval_results
+
+
+def print_map_summary(mean_ap, results):
+    """Print mAP and results of each class
+    """
+    print(50 * '-')
+    for i, cls_result in enumerate(results):
+        print('class {}, gt num: {}, det num: {}, recall: {:.4f}, ap: {:.4f}'.
+              format(i + 1, cls_result['gt_num'], cls_result['det_num'],
+                     cls_result['recall'][-1], cls_result['ap']))
+    print('mAP: {:.4f}'.format(mean_ap))
+    print(50 * '-')

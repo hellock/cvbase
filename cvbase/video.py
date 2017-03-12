@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from os import makedirs, path
+from os import path
 
 import cv2
 

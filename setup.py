@@ -8,7 +8,7 @@ def readme():
 
 setup(
     name='cvbase',
-    version='0.0.7',
+    version='0.0.8',
     description='Utils for computer vision research',
     long_description=readme(),
     keywords='computer vision',

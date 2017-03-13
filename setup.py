@@ -31,6 +31,11 @@ setup(
     license='MIT',
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
-    install_requires=['numpy>=1.11.3'],
+    install_requires=[
+        'numpy>=1.11.3'
+    ],
+    extras_require={
+        ':python_version<"3.4"': ['enum34']
+    },
     zip_safe=False
 )  # yapf: disable

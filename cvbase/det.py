@@ -42,31 +42,28 @@ def bbox_transform(proposals, gt):
 
 
 def bbox_transform_inv(bboxes, deltas):
-    """get prediction bboxes from input bboxes and deltas
+    """get ground truth bboxes from input bboxes and deltas
 
-    pw = gw * exp(dw), px = gx + dx * pw
+    gw = pw * exp(dw), gx = px + dx * pw
 
     Args:
         bboxes(ndarray): shape (..., 4) [x1, y1, x2, y2]
         deltas(ndarray): shape (..., 4*k) [dx, dy, dw, dh]
     Output:
-        ndarray: same shape as input bboxes
+        ndarray: same shape as input deltas
     """
-    assert bboxes.shape[-1] == 4
-    assert deltas.shape[-1] % 4 == 0
-    gx = (bboxes[..., 0] + bboxes[..., 2]) * 0.5
-    gy = (bboxes[..., 1] + bboxes[..., 3]) * 0.5
-    gw = bboxes[..., 2] - bboxes[..., 0] + 1.0
-    gh = bboxes[..., 3] - bboxes[..., 1] + 1.0
-    pw = gw[..., np.newaxis] * np.exp(deltas[..., 2::4])
-    ph = gh[..., np.newaxis] * np.exp(deltas[..., 3::4])
-    px = gx[..., np.newaxis] + deltas[..., 0::4] * pw
-    py = gy[..., np.newaxis] + deltas[..., 1::4] * ph
-    shape = list(px.shape)
+
+    px = (bboxes[..., 0] + bboxes[..., 2]) * 0.5
+    py = (bboxes[..., 1] + bboxes[..., 3]) * 0.5
+    pw = bboxes[..., 2] - bboxes[..., 0] + 1.0
+    ph = bboxes[..., 3] - bboxes[..., 1] + 1.0
+    gw = pw[..., np.newaxis] * np.exp(deltas[..., 2::4])
+    gh = ph[..., np.newaxis] * np.exp(deltas[..., 3::4])
+    gx = px[..., np.newaxis] + pw[..., np.newaxis] * deltas[..., 0::4]
+    gy = py[..., np.newaxis] + ph[..., np.newaxis] * deltas[..., 1::4]
+    shape = list(gx.shape)
     shape[-1] = shape[-1] * 4
-    return np.stack(
-        (px - pw * 0.5, py - ph * 0.5, px + pw * 0.5, py + ph * 0.5),
-        axis=-1).reshape(tuple(shape))
+    return np.stack((gx - gw * 0.5 + 0.5, gy - gh * 0.5 + 0.5, gx + gw * 0.5 - 0.5, gy + gh * 0.5 - 0.5), axis=-1).reshape(tuple(shape))
 
 
 def clip_bboxes(bboxes, img_shape):

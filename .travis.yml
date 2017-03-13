@@ -15,7 +15,7 @@ python:
   - "3.5"
   - "3.6"
 
-script: pytest
+script: coverage run --source=cvbase setup.py test
 
 after_success: coveralls
 
@@ -27,5 +27,5 @@ deploy:
   on:
     branch: master
     tags: true
-  distributions: "sdist bdist_wheel"
+  distributions: sdist bdist_wheel
   skip_upload_docs: true

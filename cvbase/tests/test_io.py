@@ -1,6 +1,7 @@
 from os import makedirs, path, remove, removedirs
 
-from cvbase.io import *
+from cvbase.io import (json_dump, json_load, pickle_dump, pickle_load,
+                       AsyncDumper)
 
 
 def test_json():
@@ -38,8 +39,3 @@ def test_async_dumper():
         assert path.isfile(filename)
         remove(filename)
     removedirs(tmp_dir)
-
-
-def test_read_img():
-    img = read_img(path.join(path.dirname(__file__), 'data/test.jpg'))
-    assert img.shape == (300, 400, 3)

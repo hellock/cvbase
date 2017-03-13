@@ -1,3 +1,4 @@
+import sys
 from setuptools import find_packages, setup
 
 
@@ -5,6 +6,10 @@ def readme():
     with open('README.rst') as f:
         return f.read()
 
+
+install_requires = ['numpy>=1.11.3']
+if sys.version_info < (3, 4):
+    install_requires.append('enum34')
 
 setup(
     name='cvbase',
@@ -31,11 +36,6 @@ setup(
     license='MIT',
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
-    install_requires=[
-        'numpy>=1.11.3'
-    ],
-    extras_require={
-        ':python_version<"3.4"': ['enum34']
-    },
+    install_requires=install_requires,
     zip_safe=False
 )  # yapf: disable

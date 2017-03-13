@@ -8,9 +8,6 @@ except:
 from multiprocessing import Process, Queue
 from os import path
 
-import cv2
-import numpy as np
-
 
 def json_dump(obj, filename, **kwargs):
     with open(filename, 'w') as f:
@@ -94,13 +91,3 @@ def scandir(dir_path, ext=None):
         return _scandir_py35(dir_path, ext)
     else:
         return _scandir_py(dir_path, ext)
-
-
-def read_img(img):
-    if isinstance(img, np.ndarray):
-        return img
-    elif isinstance(img, str):
-        check_file_exist(img, 'img file does not exist: {}'.format(img))
-        return cv2.imread(img)
-    else:
-        raise TypeError('"img" must be a numpy array or a filename')

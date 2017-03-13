@@ -207,11 +207,11 @@ def average_precision(recall, precision):
     return ap
 
 
-def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5):
+def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5, print_info=True):
     """Evaluate mAP of a dataset
 
     Args:
-        det_results(list): a list of list, [[cls1, cls2], [cls1, cls2], ...]
+        det_results(list): a list of list, [[cls1_det, cls2_det, ...], ...]
         gt_bboxes(list): ground truth bboxes of each image
         gt_labels(list): ground truth labels of each image
         iou_thr(float): IoU threshold
@@ -229,8 +229,8 @@ def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5):
         ]
         gt_num = sum([gt.shape[0] for gt in gts])
         img_idxs = [
-            i * np.ones(det.shape[0], dtype=np.int32)
-            for i, det in enumerate(dets)
+            i * np.ones(
+                det.shape[0], dtype=np.int32) for i, det in enumerate(dets)
         ]
         dets = np.vstack(dets)
         img_idxs = np.concatenate(img_idxs)
@@ -271,7 +271,10 @@ def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5):
     for cls_result in eval_results:
         if cls_result['gt_num'] > 0:
             aps.append(cls_result['ap'])
-    return np.array(aps).mean(), eval_results
+    mean_ap = np.array(aps).mean()
+    if print_info:
+        print_map_summary(mean_ap, eval_results)
+    return mean_ap, eval_results
 
 
 def print_map_summary(mean_ap, results):
@@ -279,8 +282,11 @@ def print_map_summary(mean_ap, results):
     """
     print(50 * '-')
     for i, cls_result in enumerate(results):
+        recall = cls_result['recall'][-1] \
+                    if cls_result['recall'].size > 0 else 0
         print('class {}, gt num: {}, det num: {}, recall: {:.4f}, ap: {:.4f}'.
               format(i + 1, cls_result['gt_num'], cls_result['det_num'],
-                     cls_result['recall'][-1], cls_result['ap']))
+                     recall, cls_result['ap']))
+    print(50 * '-')
     print('mAP: {:.4f}'.format(mean_ap))
     print(50 * '-')

@@ -1,11 +1,11 @@
 cvbase
 ========
 
-.. image:: https://img.shields.io/pypi/v/icrawler.svg
-   :target: https://pypi.python.org/pypi/icrawler
+.. image:: https://img.shields.io/pypi/v/cvbase.svg
+   :target: https://pypi.python.org/pypi/cvbase
    :alt: PyPI Version
 
-.. image:: https://img.shields.io/pypi/pyversions/icrawler.svg
+.. image:: https://img.shields.io/pypi/pyversions/cvbase.svg
    :alt: Python
 
 .. image:: https://travis-ci.org/hellock/cvbase.svg?branch=master

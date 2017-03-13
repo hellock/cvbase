@@ -71,99 +71,57 @@ class TestDet(object):
         assert_array_almost_equal(deltas5_2x1x4, deltas4_2x2x4[:, [0], :])
 
     def test_bbox_transform_inv(self):
-        # test 1 with 1 proposal 2 gt
-        proposals1 = np.array([[100, 120, 300, 240]])
-        gt1_0 = np.array([[125, 90, 280, 200]])
-        gt1_1 = np.array([[200, 50, 300, 170]])
-        deltas1_gt_0 = np.array(
-            [[0.01243781, -0.28925619, -0.2534489, -0.08626036]])
-        deltas1_gt_1 = np.array([[0.24875621, -0.57851237, -0.68818444, 0.]])
-        gt1 = np.hstack((gt1_0, gt1_1))
-        deltas1 = np.hstack((deltas1_gt_0, deltas1_gt_1))
+        # proposals: (1, 4), deltas: (1, 8)
+        proposals1_1x4 = np.array([[100, 120, 300, 240]])
+        gt1_1x8 = np.array([[125, 90, 280, 200, 200, 50, 300, 170]])
+        deltas1_1x8 = np.array([[
+            0.01243781, -0.28925619, -0.2534489, -0.08626036,
+            0.24875621, -0.57851237, -0.68818444, 0.
+        ]])  # yapf: disable
         assert_array_almost_equal(
-            bbox_transform_inv(proposals1, deltas1),
-            gt1.astype(np.float32),
+            bbox_transform_inv(proposals1_1x4, deltas1_1x8),
+            gt1_1x8,
             decimal=5)
-        # test 2 with 2 proposal 2 gt
-        proposals1 = np.array([[100, 120, 300, 240], [150, 50, 190, 200]])
-        gt1_0 = np.array([[125, 90, 280, 200]])
-        gt1_1 = np.array([[200, 50, 300, 170]])
-        gt1 = np.array(
-            [np.hstack((gt1_0[0], gt1_1[0])), np.hstack((gt1_0[0], gt1_1[0]))])
-        # deltas1_0 = bbox_transform(proposals1, gt1_0)
-        # deltas1_1 = bbox_transform(proposals1, gt1_1)
-        deltas1_0 = np.array(
-            [[0.01243781, -0.28925619, -0.2534489, -0.08626036],
-             [0.79268295, 0.13245033, 1.33628392, -0.30774966]])
-        deltas1_1 = np.array(
-            [[0.24875621, -0.57851237, -0.68818444, 0.],
-             [1.95121956, -0.09933775, 0.90154845, -0.22148931]])
-        deltas1 = np.array([
-            np.hstack((deltas1_0[0], deltas1_1[0])), np.hstack(
-                (deltas1_0[1], deltas1_1[1]))
-        ])
+        # proposals: (2, 4), deltas: (2, 8)
+        proposals2_2x4 = np.array([[100, 120, 300, 240], [150, 50, 190, 200]])
+        gt2_2x8 = np.vstack((gt1_1x8, gt1_1x8))
+        deltas2_1 = np.array([[
+            0.79268295, 0.13245033, 1.33628392, -0.30774966,
+            1.95121956, -0.09933775, 0.90154845, -0.22148931
+        ]])  # yapf: disable
+        deltas2_2x8 = np.vstack((deltas1_1x8, deltas2_1))
         assert_array_almost_equal(
-            bbox_transform_inv(proposals1, deltas1),
-            gt1.astype(np.float32),
+            bbox_transform_inv(proposals2_2x4, deltas2_2x8),
+            gt2_2x8,
             decimal=5)
-        # test 3 3D data shape = (2, 1, 4)
-        proposals1 = np.array([[[100, 120, 300, 240]], [[150, 50, 190, 200]]])
-        gt1_0 = np.array([[[125, 90, 280, 200]]])
-        gt1_1 = np.array([[[200, 50, 300, 170]]])
-        gt1 = np.array(
-            [np.hstack((gt1_0[0], gt1_1[0])), np.hstack((gt1_0[0], gt1_1[0]))])
-        # deltas1_0 = bbox_transform(proposals1, gt1_0)
-        # deltas1_1 = bbox_transform(proposals1, gt1_1)
-        deltas1_0 = np.array(
-            [[[0.01243781, -0.28925619, -0.2534489, -0.08626036]],
-             [[0.79268295, 0.13245033, 1.33628392, -0.30774966]]])
-        deltas1_1 = np.array(
-            [[[0.24875621, -0.57851237, -0.68818444, 0.]],
-             [[1.95121956, -0.09933775, 0.90154845, -0.22148931]]])
-        deltas1 = np.array([
-            np.hstack((deltas1_0[0], deltas1_1[0])), np.hstack(
-                (deltas1_0[1], deltas1_1[1]))
-        ])
+        # proposals: (2, 1, 4), deltas: (2, 1, 8)
+        proposals3_2x1x4 = proposals2_2x4[..., np.newaxis].transpose((0, 2, 1))
+        gt3_2x1x8 = gt2_2x8[..., np.newaxis].transpose((0, 2, 1))
+        deltas3_2x1x8 = deltas2_2x8[..., np.newaxis].transpose((0, 2, 1))
         assert_array_almost_equal(
-            bbox_transform_inv(proposals1, deltas1),
-            gt1.astype(np.float32),
+            bbox_transform_inv(proposals3_2x1x4, deltas3_2x1x8),
+            gt3_2x1x8,
             decimal=5)
-        # test 3 3D data shape = (1, 2, 4)
-        proposals1 = np.array([[[100, 120, 300, 240], [150, 50, 190, 200]]])
-        gt1_0 = np.array([[[125, 90, 280, 200]]])
-        gt1_1 = np.array([[[200, 50, 300, 170]]])
-        gt1 = np.array([[
-            np.hstack((gt1_0[0][0], gt1_1[0][0])), np.hstack((gt1_0[0][0],
-                                                              gt1_1[0][0]))
-        ]])
-        # deltas1_0 = bbox_transform(proposals1, gt1_0)
-        # deltas1_1 = bbox_transform(proposals1, gt1_1)
-        deltas1_0 = np.array(
-            [[[0.01243781, -0.28925619, -0.2534489, -0.08626036],
-              [0.79268295, 0.13245033, 1.33628392, -0.30774966]]])
-        deltas1_1 = np.array(
-            [[[0.24875621, -0.57851237, -0.68818444, 0.],
-              [1.95121956, -0.09933775, 0.90154845, -0.22148931]]])
-        deltas1 = np.array([
-            np.hstack((deltas1_0[0][0], deltas1_1[0][0])), np.hstack(
-                (deltas1_0[0][1], deltas1_1[0][1]))
-        ])
+        # proposals: (1, 2, 4), deltas: (1, 2, 8)
+        proposals4_1x2x4 = proposals2_2x4[np.newaxis, ...]
+        gt4_1x2x8 = gt2_2x8[np.newaxis, ...]
+        deltas4_1x2x8 = deltas2_2x8[np.newaxis, ...]
         assert_array_almost_equal(
-            bbox_transform_inv(proposals1, deltas1),
-            gt1.astype(np.float32),
+            bbox_transform_inv(proposals4_1x2x4, deltas4_1x2x8),
+            gt4_1x2x8,
             decimal=5)
 
     def test_clip_bboxes(self):
-        image_size = (768, 1024)
-        # bbox with all valid inputs
+        img_size = (768, 1024)
+        # bbox of all valid values
         bbox1 = np.array([50, 100, 900, 700])
         gt1 = np.array([50, 100, 900, 700])
-        # bbox with some part of invalid inputs
+        # bbox of partial invalid values
         bbox2 = np.array([-10, 20, 50, 800])
         gt2 = np.array([0, 20, 50, 767])
-        # bbox with all invalid inputs
+        # bbox of all invalid values
         bbox3 = np.array([-100000, -1000, 2000, 900])
         gt3 = np.array([0, 0, 1023, 767])
         bboxes = np.array([bbox1, bbox2, bbox3])
         gts = np.array([gt1, gt2, gt3])
-        assert_array_almost_equal(clip_bboxes(bboxes, image_size), gts)
+        assert_array_almost_equal(clip_bboxes(bboxes, img_size), gts)

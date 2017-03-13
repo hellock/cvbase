@@ -224,7 +224,7 @@ def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5):
     for i in range(cls_num):  # for each class
         dets = [det[i] for det in det_results]
         gts = [
-            bbox[label == i + 1, :]
+            bbox[label == i + 1, :] if bbox.shape[0] > 0 else bbox
             for bbox, label in zip(gt_bboxes, gt_labels)
         ]
         gt_num = sum([gt.shape[0] for gt in gts])

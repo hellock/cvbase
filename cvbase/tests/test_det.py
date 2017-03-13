@@ -86,8 +86,8 @@ class TestDet(object):
         assert_array_almost_equal(bbox_transform_inv(proposals1, deltas1), gt1.astype(np.float32), decimal = 5)
         # test 3
         proposals1 = np.array([[[100, 120, 300, 240]], [[150, 50, 190, 200]]])
-        gt1_0 = np.array([[[125, 90, 280, 200]])
-        gt1_1 = np.array([[[200, 50, 300, 170]])
+        gt1_0 = np.array([[[125, 90, 280, 200]]])
+        gt1_1 = np.array([[[200, 50, 300, 170]]])
         #gt1_1 = np.array([[125, 90, 280, 200]])
         gt1 = np.array([np.hstack((gt1_0[0], gt1_1[0])), np.hstack((gt1_0[0], gt1_1[0]))])
         deltas1_0 = bbox_transform(proposals1, gt1_0)

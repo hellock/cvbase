@@ -32,8 +32,10 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     install_requires=[
-        'numpy>=1.11.3',
-        'enum34;python_version<"3.4"'
+        'numpy>=1.11.3'
     ],
+    extras_require={
+        ':python_version<"3.4"': ['enum34']
+    },
     zip_safe=False
 )  # yapf: disable

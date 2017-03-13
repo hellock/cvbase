@@ -28,4 +28,5 @@ deploy:
     branch: master
     tags: true
   distributions: sdist bdist_wheel
+  skip_cleanup: true
   skip_upload_docs: true

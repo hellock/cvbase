@@ -1,5 +1,5 @@
 import numpy as np
-from cvbase.det import bbox_overlaps, bbox_transform, bbox_transform_inv
+from cvbase.det import bbox_overlaps, bbox_transform, bbox_transform_inv, clip_bboxes, bbox_overlaps
 from numpy.testing import assert_array_almost_equal
 
 
@@ -94,4 +94,30 @@ class TestDet(object):
         deltas1_1 = bbox_transform(proposals1, gt1_1)
         deltas1 = np.array([np.hstack((deltas1_0[0], deltas1_1[0])), np.hstack((deltas1_0[1], deltas1_1[1]))])
         assert_array_almost_equal(bbox_transform_inv(proposals1, deltas1), gt1.astype(np.float32), decimal = 5)
+
+    def test_clip_bboxes(self):
+        image_size = (768, 1024)
+        # bbox with all valid inputs
+        bbox1 = np.array([50, 100, 900, 700])
+        gt1 = np.array([50, 100, 900, 700])
+        # bbox with some part of invalid inputs
+        bbox2 = np.array([-10, 20, 50, 800])
+        gt2 = np.array([0, 20, 50, 767])
+        # bbox with all invalid inputs
+        bbox3 = np.array([-100000, -1000, 2000, 900])
+        gt3 = np.array([0, 0, 1023, 767])
+        bboxes = np.array([bbox1, bbox2, bbox3])
+        gts = np.array([gt1, gt2, gt3])
+        assert_array_almost_equal(clip_bboxes(bboxes, image_size), gts)
+
+    def test_bbox_overlaps(self):
+        bbox1_1 = [50, 50, 100, 100]
+        bbox2_1 = [75, 75, 150, 150]
+        bbox2_2 = [100, 100, 150, 150]
+        bbox2_3 = [150, 150, 200, 200]
+        bbox1 = np.array([bbox1_1])
+        bbox2 = np.array([bbox2_1, bbox2_2, bbox2_3])
+        result = np.array([[0.08778081, 0.00019227, 0.]])
+        assert_array_almost_equal(bbox_overlaps(bbox1, bbox2), result)
+
         

@@ -13,7 +13,7 @@ if sys.version_info < (3, 4):
 
 setup(
     name='cvbase',
-    version='0.0.8',
+    version='0.0.9',
     description='Utils for computer vision research',
     long_description=readme(),
     keywords='computer vision',

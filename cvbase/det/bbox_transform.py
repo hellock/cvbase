@@ -101,3 +101,55 @@ def flip_bboxes(bboxes, img_shape):
     flipped[..., 0::4] = w - bboxes[..., 2::4] - 1
     flipped[..., 2::4] = w - bboxes[..., 0::4] - 1
     return flipped
+
+
+def normalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
+    """Normalize bbox deltas
+
+    Args:
+        deltas(ndarray): shape(..., 4*k)
+        means(ndarray or list): shape(4, ) or (4*k, )
+        stds(ndarray or list): shape(4, ) or (4*k, )
+    Output:
+        ndarray: normalized deltas, same shape as input deltas
+    """
+    if isinstance(means, list):
+        means = np.array(means)
+    if isinstance(stds, list):
+        stds = np.array(stds)
+    assert deltas.shape[-1] % 4 == 0
+    assert means.size == 4 or means.size == deltas.shape[-1]
+    assert stds.shape == means.shape
+
+    if means.size == 4 and deltas.shape[-1] > 4:
+        reps = list(deltas.shape)
+        reps[-1] /= 4
+        means = np.tile(means, tuple(reps))
+        stds = np.tile(stds, tuple(reps))
+    return (deltas - means) / stds
+
+
+def denormalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
+    """Denormalize bbox deltas
+
+    Args:
+        deltas(ndarray): shape(..., 4*k)
+        means(ndarray or list): shape(4, ) or (4*k, )
+        stds(ndarray or list): shape(4, ) or (4*k, )
+    Output:
+        ndarray: denormalized deltas, same shape as input deltas
+    """
+    if isinstance(means, list):
+        means = np.array(means)
+    if isinstance(stds, list):
+        stds = np.array(stds)
+    assert deltas.shape[-1] % 4 == 0
+    assert means.size == 4 or means.size == deltas.shape[-1]
+    assert stds.shape == means.shape
+
+    if means.size == 4 and deltas.shape[-1] > 4:
+        reps = list(deltas.shape)
+        reps[-1] /= 4
+        means = np.tile(means, tuple(reps))
+        stds = np.tile(stds, tuple(reps))
+    return deltas * stds + means

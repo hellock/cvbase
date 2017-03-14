@@ -123,7 +123,7 @@ def normalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
 
     if means.size == 4 and deltas.shape[-1] > 4:
         reps = list(deltas.shape)
-        reps[-1] /= 4
+        reps[-1] = reps[-1] // 4
         means = np.tile(means, tuple(reps))
         stds = np.tile(stds, tuple(reps))
     return (deltas - means) / stds
@@ -149,7 +149,7 @@ def denormalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
 
     if means.size == 4 and deltas.shape[-1] > 4:
         reps = list(deltas.shape)
-        reps[-1] /= 4
+        reps[-1] = reps[-1] // 4
         means = np.tile(means, tuple(reps))
         stds = np.tile(stds, tuple(reps))
     return deltas * stds + means

@@ -3,7 +3,7 @@ from enum import Enum
 import cv2
 import numpy as np
 
-from cvbase.io import read_img
+from cvbase.image import read_img
 
 
 class Color(Enum):

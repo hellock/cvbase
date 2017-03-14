@@ -22,7 +22,7 @@ def read_img(img_or_path):
         raise TypeError('"img" must be a numpy array or a filename')
 
 
-def resize_keep_ar(img, max_long_edge, max_short_edge):
+def resize_keep_ar(img, max_long_edge, max_short_edge, return_scale=False):
     """Resize image with aspect ratio unchanged
     the long edge of resized image is no greater than max_long_edge, the short
     edge of resized image is no greater than max_short_edge.
@@ -42,10 +42,13 @@ def resize_keep_ar(img, max_long_edge, max_short_edge):
     scale = min(
         float(max_long_edge) / max(h, w), float(max_short_edge) / min(h, w))
     resized_img = cv2.resize(img, (int(w * scale), int(h * scale)))
-    return resized_img, scale
+    if return_scale:
+        return resized_img, scale
+    else:
+        return resized_img
 
 
-def limit_size(img, max_edge):
+def limit_size(img, max_edge, return_scale=False):
     """Limit the size of an image
     If the long edge of the image is greater than max_edge, resize the image
 
@@ -63,4 +66,7 @@ def limit_size(img, max_edge):
     else:
         scale = 1.0
         resized_img = img
-    return resized_img, scale
+    if return_scale:
+        return resized_img, scale
+    else:
+        return resized_img

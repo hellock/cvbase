@@ -37,3 +37,19 @@ class Timer(object):
         dur = time() - self._t_last
         self._t_last = time()
         return dur
+
+
+_g_timers = {}  # global timers
+
+
+def check_time(timer_id):
+    """Add check points in a single line
+
+    Args:
+        timer_id(str): timer identifier
+    """
+    if timer_id not in _g_timers:
+        _g_timers[timer_id] = Timer()
+        return 0
+    else:
+        return _g_timers[timer_id].since_last_check()

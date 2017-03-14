@@ -1,20 +1,12 @@
 import numpy as np
 from cvbase.det import (bbox_overlaps, bbox_transform, bbox_transform_inv,
-                        clip_bboxes)
+                        clip_bboxes, flip_bboxes)
 from numpy.testing import assert_array_almost_equal
 
 
-class TestDet(object):
+class TestBboxTransform(object):
 
-    def test_bbox_overlaps(self):
-        bbox1 = np.array([[50, 50, 100, 100]])
-        bbox2 = np.array([[75, 75, 150, 150],
-                          [100, 100, 150, 150],
-                          [150, 150, 200, 200]])  # yapf: disable
-        result = np.array([[0.08778081, 0.00019227, 0.]])
-        assert_array_almost_equal(bbox_overlaps(bbox1, bbox2), result)
-
-    def _naive_bbox_transform_2d(self, proposals, gt):
+    def _bbox_tf_2d(self, proposals, gt):
         px = (proposals[:, 0] + proposals[:, 2]) * 0.5
         py = (proposals[:, 1] + proposals[:, 3]) * 0.5
         pw = (proposals[:, 2] - proposals[:, 0] + 1.0)
@@ -33,8 +25,7 @@ class TestDet(object):
 
     def _check_bbox_transform(self, proposals, gt):
         assert_array_almost_equal(
-            bbox_transform(proposals, gt),
-            self._naive_bbox_transform_2d(proposals, gt))
+            bbox_transform(proposals, gt), self._bbox_tf_2d(proposals, gt))
 
     def test_bbox_transform(self):
         # proposals: (2, 4), gt: (1, 4)
@@ -42,8 +33,8 @@ class TestDet(object):
         gt1_1x4 = np.array([[125, 90, 280, 200]])
         deltas1 = np.array([[0.012438, -0.289256, -0.253449, -0.08626],
                             [9.166667, 1.049383, 2.005334, 0.315081]])
-        assert_array_almost_equal(
-            deltas1, self._naive_bbox_transform_2d(proposals1_2x4, gt1_1x4))
+        assert_array_almost_equal(deltas1,
+                                  self._bbox_tf_2d(proposals1_2x4, gt1_1x4))
         self._check_bbox_transform(proposals1_2x4, gt1_1x4)
         # proposals: (2, 4), gt: (2, 4)
         gt1_2x4 = np.tile(gt1_1x4, (2, 1))
@@ -62,8 +53,7 @@ class TestDet(object):
         gt4_2x2x4 = np.array([gt1_2x4, gt2_2x4])
         deltas4_2x2x4 = bbox_transform(proposals4_2x2x4, gt4_2x2x4)
         assert_array_almost_equal(deltas4_2x2x4[1, ...],
-                                  self._naive_bbox_transform_2d(proposals2_2x4,
-                                                                gt2_2x4))
+                                  self._bbox_tf_2d(proposals2_2x4, gt2_2x4))
         # proposals: (2, 1, 4), gt: (2, 1, 4)
         proposals5_2x1x4 = proposals4_2x2x4[:, [0], :]
         gt5_2x1x4 = gt4_2x2x4[:, [0], :]
@@ -125,3 +115,33 @@ class TestDet(object):
         bboxes = np.array([bbox1, bbox2, bbox3])
         gts = np.array([gt1, gt2, gt3])
         assert_array_almost_equal(clip_bboxes(bboxes, img_size), gts)
+
+    def test_flip_bboxes(self):
+        img_size = (768, 1024)
+        # (1, 4)
+        bboxes1 = np.array([[50, 100, 900, 700]])
+        flipped1 = np.array([[123, 100, 973, 700]])
+        assert_array_almost_equal(flip_bboxes(bboxes1, img_size), flipped1)
+        # (2, 4)
+        bboxes2 = np.tile(bboxes1, (2, 1))
+        flipped2 = np.tile(flipped1, (2, 1))
+        assert_array_almost_equal(flip_bboxes(bboxes2, img_size), flipped2)
+        # (2, 8)
+        bboxes3 = np.tile(bboxes2, (1, 2))
+        flipped3 = np.tile(flipped2, (1, 2))
+        assert_array_almost_equal(flip_bboxes(bboxes3, img_size), flipped3)
+        # (1, 2, 8)
+        bboxes4 = bboxes3[np.newaxis, ...]
+        flipped4 = flipped3[np.newaxis, ...]
+        assert_array_almost_equal(flip_bboxes(bboxes4, img_size), flipped4)
+
+
+class TestEval(object):
+
+    def test_bbox_overlaps(self):
+        bbox1 = np.array([[50, 50, 100, 100]])
+        bbox2 = np.array([[75, 75, 150, 150],
+                          [100, 100, 150, 150],
+                          [150, 150, 200, 200]])  # yapf: disable
+        result = np.array([[0.08778081, 0.00019227, 0.]])
+        assert_array_almost_equal(bbox_overlaps(bbox1, bbox2), result)

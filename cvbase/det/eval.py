@@ -1,90 +1,6 @@
 import numpy as np
 
 
-def bbox_transform(proposals, gt):
-    """calculate regression deltas from proposals and ground truths
-
-    dx = (gx - px) / pw, dw = log(gw / pw)
-
-    Args:
-        proposals(ndarray): shape (..., 4)
-        gt(ndarray): shape (..., 4) or (1.., 4)
-    Output:
-        ndarray: same shape as proposals
-    """
-    assert proposals.ndim == gt.ndim
-    if gt.shape[0] == 1:
-        shape = [1 for _ in range(proposals.ndim)]
-        shape[0] = proposals.shape[0]
-        gt = np.tile(gt, tuple(shape))
-    assert proposals.shape == gt.shape
-    proposals = proposals.astype(np.float32)
-    gt = gt.astype(np.float32)
-    px = (proposals[..., 0] + proposals[..., 2]) * 0.5  # px
-    py = (proposals[..., 1] + proposals[..., 3]) * 0.5  # py
-    pw = proposals[..., 2] - proposals[..., 0] + 1.0  # pw
-    ph = proposals[..., 3] - proposals[..., 1] + 1.0  # ph
-
-    gx = (gt[..., 0] + gt[..., 2]) * 0.5  # gx
-    gy = (gt[..., 1] + gt[..., 3]) * 0.5  # gy
-    gw = gt[..., 2] - gt[..., 0] + 1.0  # gw
-    gh = gt[..., 3] - gt[..., 1] + 1.0  # gh
-
-    tx = (gx - px) / pw
-    ty = (gy - py) / ph
-    tw = np.log(gw / pw)
-    th = np.log(gh / ph)
-    deltas = np.concatenate(
-        (tx[..., np.newaxis], ty[..., np.newaxis], tw[..., np.newaxis],
-         th[..., np.newaxis]),
-        axis=-1)
-    return deltas
-
-
-def bbox_transform_inv(bboxes, deltas):
-    """get ground truth bboxes from input bboxes and deltas
-
-    gw = pw * exp(dw), gx = px + dx * pw
-
-    Args:
-        bboxes(ndarray): shape (..., 4) [x1, y1, x2, y2]
-        deltas(ndarray): shape (..., 4*k) [dx, dy, dw, dh]
-    Output:
-        ndarray: same shape as input deltas
-    """
-
-    px = (bboxes[..., 0] + bboxes[..., 2]) * 0.5
-    py = (bboxes[..., 1] + bboxes[..., 3]) * 0.5
-    pw = bboxes[..., 2] - bboxes[..., 0] + 1.0
-    ph = bboxes[..., 3] - bboxes[..., 1] + 1.0
-    gw = pw[..., np.newaxis] * np.exp(deltas[..., 2::4])
-    gh = ph[..., np.newaxis] * np.exp(deltas[..., 3::4])
-    gx = px[..., np.newaxis] + pw[..., np.newaxis] * deltas[..., 0::4]
-    gy = py[..., np.newaxis] + ph[..., np.newaxis] * deltas[..., 1::4]
-    shape = list(gx.shape)
-    shape[-1] = shape[-1] * 4
-    return np.stack((gx - gw * 0.5 + 0.5, gy - gh * 0.5 + 0.5, gx + gw * 0.5 - 0.5, gy + gh * 0.5 - 0.5), axis=-1).reshape(tuple(shape))
-
-
-def clip_bboxes(bboxes, img_shape):
-    """limit bboxes to fit the image size
-
-    Args:
-        bboxes(ndarray): shape (..., 4*k)
-        img_shape(tuple): (height, width)
-    """
-    assert bboxes.shape[-1] % 4 == 0
-    bboxes[..., 0::4] = np.maximum(
-        np.minimum(bboxes[..., 0::4], img_shape[1] - 1), 0)
-    bboxes[..., 1::4] = np.maximum(
-        np.minimum(bboxes[..., 1::4], img_shape[0] - 1), 0)
-    bboxes[..., 2::4] = np.maximum(
-        np.minimum(bboxes[..., 2::4], img_shape[1] - 1), 0)
-    bboxes[..., 3::4] = np.maximum(
-        np.minimum(bboxes[..., 3::4], img_shape[0] - 1), 0)
-    return bboxes
-
-
 def bbox_overlaps(bboxes1, bboxes2):
     """calculate the ious between each bbox of bboxes1 and bboxes2
 
@@ -276,6 +192,10 @@ def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5, print_info=True):
 
 def print_map_summary(mean_ap, results):
     """Print mAP and results of each class
+
+    Args:
+        mean_ap(float): calculated from `eval_map`
+        results(list): calculated from `eval_map`
     """
     print(50 * '-')
     for i, cls_result in enumerate(results):

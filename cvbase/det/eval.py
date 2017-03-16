@@ -73,16 +73,14 @@ def _recalls(all_ious, proposal_nums=None, thrs=None):
 def bbox_recalls(gts, proposals, proposal_nums=None, thrs=None):
     """calculate recalls
     Args:
-        gts(ndarray): a numpy array of object type,
-                      each element is a ndarray of shape (n, 4)
-        proposals(ndarray): a numpy array of object type,
-                            each element is a ndarray of shape (k, 4) or (k, 5)
+        gts(list or ndarray): a list of arrays of shape (n, 4)
+        proposals(list or ndarray): a list of arrays of shape (k, 4) or (k, 5)
         proposal_nums(int or list of int or ndarray): top N proposals
         thrs(float or list or ndarray): iou thresholds
     """
 
-    img_num = gts.shape[0]
-    assert (img_num == proposals.shape[0])
+    img_num = len(gts)
+    assert img_num == len(proposals)
 
     if isinstance(proposal_nums, list):
         proposal_nums = np.array(proposal_nums)
@@ -142,8 +140,8 @@ def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5, print_info=True):
         ]
         gt_num = sum([gt.shape[0] for gt in gts])
         img_idxs = [
-            i * np.ones(
-                det.shape[0], dtype=np.int32) for i, det in enumerate(dets)
+            i * np.ones(det.shape[0], dtype=np.int32)
+            for i, det in enumerate(dets)
         ]
         dets = np.vstack(dets)
         img_idxs = np.concatenate(img_idxs)

@@ -16,8 +16,8 @@ class ProgressBar(object):
 
     def start(self):
         if self.task_num > 0:
-            stdout.write('[{}] 0/{}, ETA:'.format(' ' * self.bar_width,
-                                                  self.task_num))
+            stdout.write(
+                '[{}] 0/{}, ETA:'.format(' ' * self.bar_width, self.task_num))
         else:
             stdout.write('completed: 0, elapsed: {:5}s'.format(0))
         stdout.flush()

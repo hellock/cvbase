@@ -170,8 +170,8 @@ class VideoReader(object):
             cv2.imwrite(filename, img)
             converted += 1
             if print_interval > 0 and converted % print_interval == 0:
-                print('video2frame progress: {}/{}'.format(converted,
-                                                           task_num))
+                print(
+                    'video2frame progress: {}/{}'.format(converted, task_num))
 
     def __iter__(self):
         self._set_real_position(0)
@@ -187,7 +187,7 @@ class VideoReader(object):
     def __enter__(self):
         return self
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         self._vcap.release()
 
 

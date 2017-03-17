@@ -1,5 +1,5 @@
+import sys
 from multiprocessing import Pool
-from sys import stdout
 
 from cvbase.timer import Timer
 
@@ -16,11 +16,11 @@ class ProgressBar(object):
 
     def start(self):
         if self.task_num > 0:
-            stdout.write(
-                '[{}] 0/{}, ETA:'.format(' ' * self.bar_width, self.task_num))
+            sys.stdout.write('[{}] 0/{}, elapsed: 0s, ETA:'.format(
+                ' ' * self.bar_width, self.task_num))
         else:
-            stdout.write('completed: 0, elapsed: {:5}s'.format(0))
-        stdout.flush()
+            sys.stdout.write('completed: 0, elapsed: 0s')
+        sys.stdout.flush()
         self.timer = Timer()
 
     def update(self):
@@ -32,12 +32,14 @@ class ProgressBar(object):
             eta = int(elapsed * (1 - percentage) / percentage + 0.5)
             mark_width = int(self.bar_width * percentage)
             bar_chars = '>' * mark_width + ' ' * (self.bar_width - mark_width)
-            stdout.write('\r[{}] {}/{}, {:.1f} tasks/s, ETA: {:5}s'.format(
-                bar_chars, self.completed, self.task_num, fps, eta))
+            sys.stdout.write(
+                '\r[{}] {}/{}, {:.1f} task/s, elapsed: {}s, ETA: {:5}s'.format(
+                    bar_chars, self.completed, self.task_num, fps,
+                    int(elapsed + 0.5), eta))
         else:
-            stdout.write('completed: {}, elapsed: {:5}s, {:.1f} tasks/s'.
-                         format(self.completed, elapsed, fps))
-        stdout.flush()
+            sys.stdout.write('completed: {}, elapsed: {}s, {:.1f} tasks/s'.
+                             format(self.completed, int(elapsed + 0.5), fps))
+        sys.stdout.flush()
 
 
 def track_progress(func, tasks, bar_width=50, **kwargs):
@@ -46,7 +48,7 @@ def track_progress(func, tasks, bar_width=50, **kwargs):
     for task in tasks:
         results.append(func(task, **kwargs))
         prog_bar.update()
-    stdout.write('\n')
+    sys.stdout.write('\n')
     return results
 
 
@@ -67,5 +69,5 @@ def track_parallel_progress(func,
         for result in pool.imap_unordered(func, tasks, chunksize):
             results.append(result)
             prog_bar.update()
-    stdout.write('\n')
+    sys.stdout.write('\n')
     return results

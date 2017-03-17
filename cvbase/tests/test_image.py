@@ -1,7 +1,7 @@
 from os import path
 
 import pytest
-from cvbase.image import read_img, resize_keep_ar, limit_size
+from cvbase.image import read_img, img_from_bytes, resize_keep_ar, limit_size
 
 
 class TestImage(object):
@@ -12,6 +12,11 @@ class TestImage(object):
 
     def test_read_img(self):
         img = read_img(self.img_path)
+        assert img.shape == (300, 400, 3)
+
+    def test_img_from_bytes(self):
+        img_bytes = open(self.img_path, 'rb').read()
+        img = img_from_bytes(img_bytes)
         assert img.shape == (300, 400, 3)
 
     def test_resize_keep_ar(self):

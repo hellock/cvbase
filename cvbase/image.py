@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 from cvbase.io import check_file_exist
+from cvbase.opencv import IMREAD_COLOR
 
 
 def read_img(img_or_path):
@@ -20,6 +21,12 @@ def read_img(img_or_path):
         return cv2.imread(img_or_path)
     else:
         raise TypeError('"img" must be a numpy array or a filename')
+
+
+def img_from_bytes(content, flag=IMREAD_COLOR):
+    img_np = np.fromstring(content, np.uint8)
+    img = cv2.imdecode(img_np, flag)
+    return img
 
 
 def resize_keep_ar(img, max_long_edge, max_short_edge, return_scale=False):

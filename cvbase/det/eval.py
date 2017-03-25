@@ -17,6 +17,15 @@ def bbox_overlaps(bboxes1, bboxes2):
     ious = np.zeros((rows, cols), dtype=np.float32)
     if rows * cols == 0:
         return ious
+    exchange = False
+    if bboxes1.shape[0] > bboxes2.shape[0]:
+        bboxes1, bboxes2 = bboxes2, bboxes1
+        ious = np.zeros((cols, rows), dtype=np.float32)
+        exchange = True
+    area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (
+        bboxes1[:, 3] - bboxes1[:, 1] + 1)
+    area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
+        bboxes2[:, 3] - bboxes2[:, 1] + 1)
     for i in range(bboxes1.shape[0]):
         x_start = np.maximum(bboxes1[i, 0], bboxes2[:, 0])
         y_start = np.maximum(bboxes1[i, 1], bboxes2[:, 1])
@@ -24,12 +33,10 @@ def bbox_overlaps(bboxes1, bboxes2):
         y_end = np.minimum(bboxes1[i, 3], bboxes2[:, 3])
         overlap = (np.maximum(x_end - x_start + 1, 0) *
                    np.maximum(y_end - y_start + 1, 0))
-        area1 = (bboxes1[i, 2] - bboxes1[i, 0] + 1) * (
-            bboxes1[i, 3] - bboxes1[i, 1] + 1)
-        area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
-            bboxes2[:, 3] - bboxes2[:, 1] + 1)
-        union = area1 + area2 - overlap
+        union = area1[i] + area2 - overlap
         ious[i, :] = overlap / union
+    if exchange:
+        ious = ious.T
     return ious
 
 
@@ -140,8 +147,8 @@ def eval_map(det_results, gt_bboxes, gt_labels, iou_thr=0.5, print_info=True):
         ]
         gt_num = sum([gt.shape[0] for gt in gts])
         img_idxs = [
-            i * np.ones(det.shape[0], dtype=np.int32)
-            for i, det in enumerate(dets)
+            i * np.ones(
+                det.shape[0], dtype=np.int32) for i, det in enumerate(dets)
         ]
         dets = np.vstack(dets)
         img_idxs = np.concatenate(img_idxs)

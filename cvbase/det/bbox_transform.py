@@ -103,7 +103,7 @@ def flip_bboxes(bboxes, img_shape):
     return flipped
 
 
-def normalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
+def bbox_normalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
     """Normalize bbox deltas
 
     Args:
@@ -129,7 +129,7 @@ def normalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
     return (deltas - means) / stds
 
 
-def denormalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
+def bbox_denormalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
     """Denormalize bbox deltas
 
     Args:

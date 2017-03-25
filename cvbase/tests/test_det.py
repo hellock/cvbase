@@ -1,6 +1,7 @@
 import numpy as np
 from cvbase.det import (bbox_overlaps, bbox_transform, bbox_transform_inv,
-                        clip_bboxes, flip_bboxes, normalize, denormalize)
+                        clip_bboxes, flip_bboxes, bbox_normalize,
+                        bbox_denormalize)
 from numpy.testing import assert_array_almost_equal
 
 
@@ -142,19 +143,19 @@ class TestBboxTransform(object):
         deltas1 = np.array([[0.12, 0.13, -0.18, 0.05]])
         norm_deltas1 = np.array([[0.7, 1.2, -0.4, -0.2]])
         assert_array_almost_equal(
-            normalize(deltas1, means, stds), norm_deltas1)
+            bbox_normalize(deltas1, means, stds), norm_deltas1)
         # deltas: (2, 4), means: (4, )
         means = np.array(means)
         stds = np.array(stds)
         deltas2 = np.tile(deltas1, (2, 1))
         norm_deltas2 = np.tile(norm_deltas1, (2, 1))
         assert_array_almost_equal(
-            normalize(deltas2, means, stds), norm_deltas2)
+            bbox_normalize(deltas2, means, stds), norm_deltas2)
         # deltas: (2, 8), means: (4, )
         deltas3 = np.tile(deltas2, (1, 2))
         norm_deltas3 = np.tile(norm_deltas2, (1, 2))
         assert_array_almost_equal(
-            normalize(deltas3, means, stds), norm_deltas3)
+            bbox_normalize(deltas3, means, stds), norm_deltas3)
         # deltas: (2, 8), means: (8, )
         deltas4 = deltas3
         means = np.hstack((means, means))
@@ -162,12 +163,12 @@ class TestBboxTransform(object):
         norm_deltas4 = norm_deltas3
         norm_deltas4[:, 4:8] = norm_deltas4[:, 4:8] / 2
         assert_array_almost_equal(
-            normalize(deltas4, means, stds), norm_deltas4)
+            bbox_normalize(deltas4, means, stds), norm_deltas4)
         # deltas: (3, 2, 8), means: (8, )
         deltas5 = np.stack((deltas4, deltas4, deltas4))
         norm_deltas5 = np.stack((norm_deltas4, norm_deltas4, norm_deltas4))
         assert_array_almost_equal(
-            normalize(deltas5, means, stds), norm_deltas5)
+            bbox_normalize(deltas5, means, stds), norm_deltas5)
 
     def test_denormalize(self):
         means = [0.05, -0.05, -0.1, 0.1]
@@ -176,19 +177,19 @@ class TestBboxTransform(object):
         deltas1 = np.array([[0.12, 0.13, -0.18, 0.05]])
         norm_deltas1 = np.array([[0.7, 1.2, -0.4, -0.2]])
         assert_array_almost_equal(
-            denormalize(norm_deltas1, means, stds), deltas1)
+            bbox_denormalize(norm_deltas1, means, stds), deltas1)
         # deltas: (2, 4), means: (4, )
         means = np.array(means)
         stds = np.array(stds)
         deltas2 = np.tile(deltas1, (2, 1))
         norm_deltas2 = np.tile(norm_deltas1, (2, 1))
         assert_array_almost_equal(
-            denormalize(norm_deltas2, means, stds), deltas2)
+            bbox_denormalize(norm_deltas2, means, stds), deltas2)
         # deltas: (2, 8), means: (4, )
         deltas3 = np.tile(deltas2, (1, 2))
         norm_deltas3 = np.tile(norm_deltas2, (1, 2))
         assert_array_almost_equal(
-            denormalize(norm_deltas3, means, stds), deltas3)
+            bbox_denormalize(norm_deltas3, means, stds), deltas3)
         # deltas: (2, 8), means: (8, )
         deltas4 = deltas3
         means = np.hstack((means, means))
@@ -196,12 +197,12 @@ class TestBboxTransform(object):
         norm_deltas4 = norm_deltas3
         norm_deltas4[:, 4:8] = norm_deltas4[:, 4:8] / 2
         assert_array_almost_equal(
-            denormalize(norm_deltas4, means, stds), deltas4)
+            bbox_denormalize(norm_deltas4, means, stds), deltas4)
         # deltas: (2, 2, 8), means: (8, )
         deltas5 = np.stack((deltas4, deltas4))
         norm_deltas5 = np.stack((norm_deltas4, norm_deltas4))
         assert_array_almost_equal(
-            denormalize(norm_deltas5, means, stds), deltas5)
+            bbox_denormalize(norm_deltas5, means, stds), deltas5)
 
 
 class TestEval(object):

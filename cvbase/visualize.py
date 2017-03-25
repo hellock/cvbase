@@ -42,6 +42,7 @@ def draw_bboxes(img, bboxes, colors=Color.green, top_k=0, thickness=1,
     assert len(bboxes) == len(colors)
 
     for i, _bboxes in enumerate(bboxes):
+        _bboxes = _bboxes.astype(np.int32)
         if top_k <= 0:
             _top_k = _bboxes.shape[0]
         else:

@@ -69,7 +69,7 @@ def bbox_transform_inv(bboxes, deltas):
         axis=-1).reshape(tuple(shape))
 
 
-def bboxes_clip(bboxes, img_shape):
+def bbox_clip(bboxes, img_shape):
     """Limit bboxes to fit the image size
 
     Args:
@@ -88,7 +88,7 @@ def bboxes_clip(bboxes, img_shape):
     return bboxes
 
 
-def bboxes_flip(bboxes, img_shape):
+def bbox_flip(bboxes, img_shape):
     """Flip bboxes horizontally
 
     Args:

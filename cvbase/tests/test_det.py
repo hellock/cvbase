@@ -1,6 +1,6 @@
 import numpy as np
 from cvbase.det import (bbox_overlaps, bbox_transform, bbox_transform_inv,
-                        clip_bboxes, flip_bboxes, bbox_normalize,
+                        bboxes_clip, bboxes_flip, bbox_normalize,
                         bbox_denormalize)
 from numpy.testing import assert_array_almost_equal
 
@@ -102,7 +102,7 @@ class TestBboxTransform(object):
             gt4_1x2x8,
             decimal=5)
 
-    def test_clip_bboxes(self):
+    def test_bboxes_clip(self):
         img_size = (768, 1024)
         # bbox of all valid values
         bbox1 = np.array([50, 100, 900, 700])
@@ -115,28 +115,28 @@ class TestBboxTransform(object):
         gt3 = np.array([0, 0, 1023, 767])
         bboxes = np.array([bbox1, bbox2, bbox3])
         gts = np.array([gt1, gt2, gt3])
-        assert_array_almost_equal(clip_bboxes(bboxes, img_size), gts)
+        assert_array_almost_equal(bboxes_clip(bboxes, img_size), gts)
 
-    def test_flip_bboxes(self):
+    def test_bboxes_flip(self):
         img_size = (768, 1024)
         # (1, 4)
         bboxes1 = np.array([[50, 100, 900, 700]])
         flipped1 = np.array([[123, 100, 973, 700]])
-        assert_array_almost_equal(flip_bboxes(bboxes1, img_size), flipped1)
+        assert_array_almost_equal(bboxes_flip(bboxes1, img_size), flipped1)
         # (2, 4)
         bboxes2 = np.tile(bboxes1, (2, 1))
         flipped2 = np.tile(flipped1, (2, 1))
-        assert_array_almost_equal(flip_bboxes(bboxes2, img_size), flipped2)
+        assert_array_almost_equal(bboxes_flip(bboxes2, img_size), flipped2)
         # (2, 8)
         bboxes3 = np.tile(bboxes2, (1, 2))
         flipped3 = np.tile(flipped2, (1, 2))
-        assert_array_almost_equal(flip_bboxes(bboxes3, img_size), flipped3)
+        assert_array_almost_equal(bboxes_flip(bboxes3, img_size), flipped3)
         # (1, 2, 8)
         bboxes4 = bboxes3[np.newaxis, ...]
         flipped4 = flipped3[np.newaxis, ...]
-        assert_array_almost_equal(flip_bboxes(bboxes4, img_size), flipped4)
+        assert_array_almost_equal(bboxes_flip(bboxes4, img_size), flipped4)
 
-    def test_normalize(self):
+    def test_bboxes_normalize(self):
         means = [0.05, -0.05, -0.1, 0.1]
         stds = [0.1, 0.15, 0.2, 0.25]
         # deltas: (1, 4), means: (4, )
@@ -170,7 +170,7 @@ class TestBboxTransform(object):
         assert_array_almost_equal(
             bbox_normalize(deltas5, means, stds), norm_deltas5)
 
-    def test_denormalize(self):
+    def test_bboxes_denormalize(self):
         means = [0.05, -0.05, -0.1, 0.1]
         stds = [0.1, 0.15, 0.2, 0.25]
         # deltas: (1, 4), means: (4, )

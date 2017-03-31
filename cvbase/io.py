@@ -31,6 +31,20 @@ def pickle_load(filename, **kwargs):
     return obj
 
 
+def list_from_file(filename, prefix='', offset=0, max_num=0):
+    cnt = 0
+    item_list = []
+    with open(filename, 'r') as f:
+        for _ in range(offset):
+            f.readline()
+        for line in f:
+            if max_num > 0 and cnt >= max_num:
+                break
+            item_list.append(prefix + line.rstrip('\n'))
+            cnt += 1
+    return item_list
+
+
 class AsyncDumper(Process):
 
     def __init__(self):

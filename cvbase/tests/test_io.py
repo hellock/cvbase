@@ -1,7 +1,7 @@
 from os import makedirs, path, remove, removedirs
 
 from cvbase.io import (json_dump, json_load, pickle_dump, pickle_load,
-                       AsyncDumper)
+                       list_from_file, AsyncDumper)
 
 
 def test_json():
@@ -22,6 +22,20 @@ def test_pickle():
     load_obj = pickle_load(tmp_filename)
     assert load_obj == test_obj
     remove(tmp_filename)
+
+
+def test_list_from_file():
+    filename = path.join(path.dirname(__file__), 'data/filelist.txt')
+    filelist = list_from_file(filename)
+    assert filelist == ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg']
+    filelist = list_from_file(filename, prefix='a/')
+    assert filelist == ['a/1.jpg', 'a/2.jpg', 'a/3.jpg', 'a/4.jpg', 'a/5.jpg']
+    filelist = list_from_file(filename, offset=2)
+    assert filelist == ['3.jpg', '4.jpg', '5.jpg']
+    filelist = list_from_file(filename, max_num=2)
+    assert filelist == ['1.jpg', '2.jpg']
+    filelist = list_from_file(filename, offset=3, max_num=3)
+    assert filelist == ['4.jpg', '5.jpg']
 
 
 def test_async_dumper():

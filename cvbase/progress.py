@@ -52,22 +52,45 @@ def track_progress(func, tasks, bar_width=50, **kwargs):
     return results
 
 
+def init_pool(process_num, initializer=None, initargs=None):
+    if initializer is None:
+        return Pool(process_num)
+    elif initargs is None:
+        return Pool(process_num, initializer)
+    else:
+        if not isinstance(initargs, tuple):
+            raise TypeError('"initargs" must be a tuple')
+        return Pool(process_num, initializer, initargs)
+
+
 def track_parallel_progress(func,
                             tasks,
                             process_num,
+                            initializer=None,
+                            initargs=None,
                             bar_width=50,
                             chunksize=1,
+                            skip_first=False,
                             keep_order=True):
-    pool = Pool(process_num)
-    prog_bar = ProgressBar(len(tasks), bar_width)
+    pool = init_pool(process_num, initializer, initargs)
+    start = not skip_first
+    task_num = len(tasks) - process_num * chunksize * int(skip_first)
+    prog_bar = ProgressBar(task_num, bar_width, start)
     results = []
     if keep_order:
-        for result in pool.imap(func, tasks, chunksize):
-            results.append(result)
-            prog_bar.update()
+        gen = pool.imap(func, tasks, chunksize)
     else:
-        for result in pool.imap_unordered(func, tasks, chunksize):
-            results.append(result)
-            prog_bar.update()
+        gen = pool.imap_unordered(func, tasks, chunksize)
+    for result in gen:
+        results.append(result)
+        if skip_first:
+            if len(results) < process_num * chunksize:
+                continue
+            elif len(results) == process_num * chunksize:
+                prog_bar.start()
+                continue
+        prog_bar.update()
     sys.stdout.write('\n')
+    pool.close()
+    pool.join()
     return results

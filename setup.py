@@ -7,13 +7,13 @@ def readme():
         return f.read()
 
 
-install_requires = ['numpy>=1.11.3']
+install_requires = ['numpy>=1.11.3', 'matplotlib', 'terminaltables']
 if sys.version_info < (3, 4):
     install_requires.append('enum34')
 
 setup(
     name='cvbase',
-    version='0.1.4',
+    version='0.1.5',
     description='Utils for computer vision research',
     long_description=readme(),
     keywords='computer vision',

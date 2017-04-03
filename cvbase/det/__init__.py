@@ -1,2 +1,2 @@
-from cvbase.det.bbox_transform import *
-from cvbase.det.eval import *
+from .bbox_transform import *
+from .eval import *

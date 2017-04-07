@@ -29,6 +29,35 @@ def img_from_bytes(content, flag=IMREAD_COLOR):
     return img
 
 
+def resize(img, size, return_scale=False):
+    img = read_img(img)
+    h, w = img.shape[:2]
+    resized_img = cv2.resize(img, size)
+    if not return_scale:
+        return resized_img
+    else:
+        w_scale = size[0] / float(w)
+        h_scale = size[1] / float(h)
+        return resized_img, w_scale, h_scale
+
+
+def resize_by_ratio(img, ratio):
+    """Resize image by a ratio
+
+    Args:
+        img(ndarray): image or image path
+        ratio(float): resize ratio
+    Output:
+        ndarray: resized image
+    """
+    assert isinstance(ratio, (float, int)) and ratio > 0
+    img = read_img(img)
+    h, w = img.shape[:2]
+    resize_w = int(w * ratio + 0.5)
+    resize_h = int(h * ratio + 0.5)
+    return cv2.resize(img, (resize_w, resize_h))
+
+
 def resize_keep_ar(img, max_long_edge, max_short_edge, return_scale=False):
     """Resize image with aspect ratio unchanged
     the long edge of resized image is no greater than max_long_edge, the short

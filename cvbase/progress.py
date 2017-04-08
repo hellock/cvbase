@@ -1,3 +1,4 @@
+import subprocess
 import sys
 from multiprocessing import Pool
 
@@ -9,10 +10,20 @@ class ProgressBar(object):
 
     def __init__(self, task_num=0, bar_width=50, start=True):
         self.task_num = task_num
-        self.bar_width = 50
+        terminal_width = self._get_terminal_width()
+        if bar_width < terminal_width:
+            self.bar_width = bar_width
+        else:
+            self.bar_width = int(terminal_width * 2.0 / 3)
         self.completed = 0
         if start:
             self.start()
+
+    def _get_terminal_width(self):
+        ret = subprocess.check_output('tput cols', shell=True)
+        if isinstance(ret, bytes):  # python 3
+            ret = ret.decode()
+        return int(ret.rstrip('\n'))
 
     def start(self):
         if self.task_num > 0:

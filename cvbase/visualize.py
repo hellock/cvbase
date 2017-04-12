@@ -48,8 +48,10 @@ def draw_bboxes(img, bboxes, colors=Color.green, top_k=0, thickness=1,
         else:
             _top_k = min(top_k, _bboxes.shape[0])
         for j in range(_top_k):
-            cv2.rectangle(img, (_bboxes[j, 0], _bboxes[j, 1]),
-                          (_bboxes[j, 2], _bboxes[j, 3]), colors[i])
+            left_top = (_bboxes[j, 0], _bboxes[j, 1])
+            right_bottom = (_bboxes[j, 2], _bboxes[j, 3])
+            cv2.rectangle(
+                img, left_top, right_bottom, colors[i], thickness=thickness)
     if show:
         cv2.imshow(win_name, img)
         cv2.waitKey(wait_time)

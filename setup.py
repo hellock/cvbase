@@ -7,7 +7,7 @@ def readme():
         return f.read()
 
 
-install_requires = ['numpy>=1.11.3', 'matplotlib', 'terminaltables']
+install_requires = ['numpy>=1.11.1', 'matplotlib', 'terminaltables']
 if sys.version_info < (3, 4):
     install_requires.append('enum34')
 

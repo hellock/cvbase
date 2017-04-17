@@ -106,14 +106,14 @@ def draw_bboxes_with_label(img, bboxes, labels, top_k=0, bbox_color=Color.green,
         text_color = text_color.value
     assert len(bboxes) == len(label_names)
     for i, _bboxes in enumerate(bboxes):
-        _bboxes = _bboxes.astype(np.int32)
+        bboxes_int = _bboxes[:, :4].astype(np.int32)
         if top_k <= 0:
             _top_k = _bboxes.shape[0]
         else:
             _top_k = min(top_k, _bboxes.shape[0])
         for j in range(_top_k):
-            left_top = (_bboxes[j, 0], _bboxes[j, 1])
-            right_bottom = (_bboxes[j, 2], _bboxes[j, 3])
+            left_top = (bboxes_int[j, 0], bboxes_int[j, 1])
+            right_bottom = (bboxes_int[j, 2], bboxes_int[j, 3])
             cv2.rectangle(
                 img, left_top, right_bottom, bbox_color, thickness=thickness)
             if _bboxes.shape[1] > 4:

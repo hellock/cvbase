@@ -120,7 +120,8 @@ def draw_bboxes_with_label(img, bboxes, labels, top_k=0, bbox_color=Color.green,
                 label_text = '{}|{:.02f}'.format(label_names[i], _bboxes[j, 4])
             else:
                 label_text = label_names[i]
-            cv2.putText(img, label_text, (_bboxes[j, 0], _bboxes[j, 1] - 2),
+            cv2.putText(img, label_text,
+                        (bboxes_int[j, 0], bboxes_int[j, 1] - 2),
                         cv2.FONT_HERSHEY_COMPLEX, font_scale, text_color)
     if show:
         cv2.imshow(win_name, img)

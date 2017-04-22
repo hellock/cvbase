@@ -10,14 +10,23 @@ class TimerError(Exception):
 
 class Timer(object):
 
-    def __init__(self, start=True):
+    def __init__(self, start=True, print_tmpl=None):
         self._is_running = False
+        self.print_tmpl = print_tmpl if print_tmpl else '{:.3f}'
         if start:
             self.start()
 
     @property
     def is_running(self):
         return self._is_running
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        print(self.print_tmpl.format(self.since_last_check()))
+        self._is_running = False
 
     def start(self):
         if not self._is_running:

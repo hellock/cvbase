@@ -4,7 +4,10 @@ from .io import *
 from .progress import *
 from .timer import *
 # require opencv
-from .image import *
-from .opencv import *
-from .video import *
-from .visualize import *
+try:
+    from .image import *
+    from .opencv import *
+    from .video import *
+    from .visualize import *
+except ImportError:
+    pass

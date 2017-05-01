@@ -245,8 +245,8 @@ def eval_map(det_results,
 
     Args:
         det_results(list): a list of list, [[cls1_det, cls2_det, ...], ...]
-        gt_bboxes(list): ground truth bboxes of each image
-        gt_labels(list): ground truth labels of each image
+        gt_bboxes(list): ground truth bboxes of each image, a list of K*4 array
+        gt_labels(list): ground truth labels of each image, a list of K/K*2 array
         iou_thr(float): IoU threshold
         out_file(str or None): filename to save all precisions and recalls
     Output:
@@ -256,11 +256,22 @@ def eval_map(det_results,
     cls_num = len(det_results[0])  # positive class num
     for i in range(cls_num):  # for each class
         dets = [det[i] for det in det_results]
-        gts = [
-            bbox[label == i + 1, :] if bbox.shape[0] > 0 else bbox
-            for bbox, label in zip(gt_bboxes, gt_labels)
-        ]
-        gt_num = sum([gt.shape[0] for gt in gts])
+
+        gts = []  # gt bboxes of this class
+        gt_difficult = []  # difficult indicator of this class
+        for bbox, label in zip(gt_bboxes, gt_labels):
+            if label.ndim == 1 or label.shape[1] == 1:  # no difficult info
+                gt = bbox[label == i + 1, :] if bbox.shape[0] > 0 else bbox
+                gt_difficult.append(np.zeros(gt.shape[0]))
+            else:  # with difficult info
+                cls_idx = (label[:, 0] == i + 1)
+                gt = bbox[cls_idx, :] if bbox.shape[0] > 0 else bbox
+                gt_difficult.append(label[cls_idx, 1])
+            gts.append(gt)
+
+        gt_num = sum([gt.shape[0] for gt in gts]) - sum(
+            [diff.sum() for diff in gt_difficult])
+
         img_idxs = [
             i * np.ones(
                 det.shape[0], dtype=np.int32) for i, det in enumerate(dets)
@@ -268,7 +279,7 @@ def eval_map(det_results,
         dets = np.vstack(dets)
         img_idxs = np.concatenate(img_idxs)
         # sort all detections by scores in descending order
-        sort_idx = np.argsort(dets[:, -1])[::-1]
+        sort_idx = np.argsort(-dets[:, -1])
         dets = dets[sort_idx, :]
         img_idxs = img_idxs[sort_idx]
         covered = [np.zeros(gt.shape[0], dtype=np.int32) for gt in gts]
@@ -282,9 +293,13 @@ def eval_map(det_results,
                 fp[j] = 1
                 continue
             ious = bbox_overlaps(dets[np.newaxis, j, :], gts[img_idx])
-            if ious.max() > iou_thr and covered[img_idx][ious.argmax()] == 0:
-                covered[img_idx][ious.argmax()] = 1
-                tp[j] = 1
+            if ious.max() >= iou_thr:
+                if not gt_difficult[img_idx][ious.argmax()]:
+                    if covered[img_idx][ious.argmax()] == 0:
+                        tp[j] = 1
+                        covered[img_idx][ious.argmax()] = 1
+                    else:
+                        fp[j] = 1
             else:
                 fp[j] = 1
         tp = np.cumsum(tp)

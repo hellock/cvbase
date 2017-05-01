@@ -212,15 +212,26 @@ def plot_iou_recall(recalls, iou_thrs):
     f.show()
 
 
-def average_precision(recall, precision):
+def average_precision(recall, precision, mode='area'):
     """Calculate average precision
     """
-    mrec = np.concatenate(([0.], recall, [1.]))
-    mpre = np.concatenate(([0.], precision, [0.]))
-    for i in range(mpre.shape[0] - 1, 0, -1):
-        mpre[i - 1] = np.maximum(mpre[i - 1], mpre[i])
-    idx = np.where(mrec[1:] != mrec[:-1])[0]
-    ap = np.sum((mrec[idx + 1] - mrec[idx]) * mpre[idx + 1])
+    if mode == 'area':
+        mrec = np.concatenate(([0.], recall, [1.]))
+        mpre = np.concatenate(([0.], precision, [0.]))
+        for i in range(mpre.shape[0] - 1, 0, -1):
+            mpre[i - 1] = np.maximum(mpre[i - 1], mpre[i])
+        idx = np.where(mrec[1:] != mrec[:-1])[0]
+        ap = np.sum((mrec[idx + 1] - mrec[idx]) * mpre[idx + 1])
+    elif mode == '11points':
+        ap = 0.0
+        for thr in range(0, 1 + 1e-3, 0.1):
+            precs = precision[recall >= thr]
+            prec = precs.max() if precs.size > 0 else 0
+            ap += prec
+        ap /= 11
+    else:
+        raise ValueError(
+            'Unrecognized mode, only "area" and "11points" are supported')
     return ap
 
 
@@ -228,7 +239,8 @@ def eval_map(det_results,
              gt_bboxes,
              gt_labels,
              iou_thr=0.5,
-             print_summary=True):
+             print_summary=True,
+             mode='area'):
     """Evaluate mAP of a dataset
 
     Args:
@@ -250,8 +262,8 @@ def eval_map(det_results,
         ]
         gt_num = sum([gt.shape[0] for gt in gts])
         img_idxs = [
-            i * np.ones(det.shape[0], dtype=np.int32)
-            for i, det in enumerate(dets)
+            i * np.ones(
+                det.shape[0], dtype=np.int32) for i, det in enumerate(dets)
         ]
         dets = np.vstack(dets)
         img_idxs = np.concatenate(img_idxs)
@@ -280,7 +292,7 @@ def eval_map(det_results,
         eps = np.finfo(np.float32).eps
         recall = tp / np.maximum(float(gt_num), eps)
         precision = tp / np.maximum((tp + fp), eps)
-        ap = average_precision(recall, precision)
+        ap = average_precision(recall, precision, mode)
         eval_results.append({
             'gt_num': gt_num,
             'det_num': det_num,

@@ -224,7 +224,7 @@ def average_precision(recall, precision, mode='area'):
         ap = np.sum((mrec[idx + 1] - mrec[idx]) * mpre[idx + 1])
     elif mode == '11points':
         ap = 0.0
-        for thr in range(0, 1 + 1e-3, 0.1):
+        for thr in np.arange(0, 1 + 1e-3, 0.1):
             precs = precision[recall >= thr]
             prec = precs.max() if precs.size > 0 else 0
             ap += prec
@@ -256,7 +256,6 @@ def eval_map(det_results,
     cls_num = len(det_results[0])  # positive class num
     for i in range(cls_num):  # for each class
         dets = [det[i] for det in det_results]
-
         gts = []  # gt bboxes of this class
         gt_difficult = []  # difficult indicator of this class
         for bbox, label in zip(gt_bboxes, gt_labels):
@@ -273,8 +272,8 @@ def eval_map(det_results,
             [diff.sum() for diff in gt_difficult])
 
         img_idxs = [
-            i * np.ones(
-                det.shape[0], dtype=np.int32) for i, det in enumerate(dets)
+            i * np.ones(det.shape[0], dtype=np.int32)
+            for i, det in enumerate(dets)
         ]
         dets = np.vstack(dets)
         img_idxs = np.concatenate(img_idxs)

@@ -1,3 +1,4 @@
+import collections
 import subprocess
 import sys
 from multiprocessing import Pool
@@ -54,7 +55,25 @@ class ProgressBar(object):
 
 
 def track_progress(func, tasks, bar_width=50, **kwargs):
-    prog_bar = ProgressBar(len(tasks), bar_width)
+    """Track the progress of tasks execution with a progress bar
+
+    Args:
+        func(function): the function to be applied to each task
+        tasks(tuple of 2 or list): a list of tasks
+        bar_width(int): width of progress bar
+    """
+    if isinstance(tasks, tuple):
+        assert len(tasks) == 2
+        assert isinstance(tasks[0], collections.Iterable)
+        assert isinstance(tasks[1], int)
+        task_num = tasks[1]
+        tasks = tasks[0]
+    elif isinstance(tasks, collections.Iterable):
+        task_num = len(tasks)
+    else:
+        raise TypeError(
+            '"tasks" must be an iterable object or a (iterator, int) tuple')
+    prog_bar = ProgressBar(task_num, bar_width)
     results = []
     for task in tasks:
         results.append(func(task, **kwargs))
@@ -83,9 +102,20 @@ def track_parallel_progress(func,
                             chunksize=1,
                             skip_first=False,
                             keep_order=True):
+    if isinstance(tasks, tuple):
+        assert len(tasks) == 2
+        assert isinstance(tasks[0], collections.Iterable)
+        assert isinstance(tasks[1], int)
+        task_num = tasks[1]
+        tasks = tasks[0]
+    elif isinstance(tasks, collections.Iterable):
+        task_num = len(tasks)
+    else:
+        raise TypeError(
+            '"tasks" must be an iterable object or a (iterator, int) tuple')
     pool = init_pool(process_num, initializer, initargs)
     start = not skip_first
-    task_num = len(tasks) - process_num * chunksize * int(skip_first)
+    task_num -= process_num * chunksize * int(skip_first)
     prog_bar = ProgressBar(task_num, bar_width, start)
     results = []
     if keep_order:

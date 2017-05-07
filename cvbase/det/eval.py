@@ -259,9 +259,11 @@ def eval_map(det_results,
         gts = []  # gt bboxes of this class
         gt_difficult = []  # difficult indicator of this class
         for bbox, label in zip(gt_bboxes, gt_labels):
-            if label.ndim == 1 or label.shape[1] == 1:  # no difficult info
+            if label.ndim == 2 and label.shape[1] == 1:
+                label = label[:, 0]
+            if label.ndim == 1:  # no difficult info
                 gt = bbox[label == i + 1, :] if bbox.shape[0] > 0 else bbox
-                gt_difficult.append(np.zeros(gt.shape[0]))
+                gt_difficult.append(np.zeros(gt.shape[0], dtype=np.int32))
             else:  # with difficult info
                 cls_idx = (label[:, 0] == i + 1)
                 gt = bbox[cls_idx, :] if bbox.shape[0] > 0 else bbox

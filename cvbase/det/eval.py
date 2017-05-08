@@ -333,13 +333,21 @@ def print_map_summary(mean_ap, results):
         mean_ap(float): calculated from `eval_map`
         results(list): calculated from `eval_map`
     """
-    print(50 * '-')
+    header = ['class', 'gts', 'dets', 'recall', 'precision', 'ap']
+    table_data = [header]
     for i, cls_result in enumerate(results):
-        recall = cls_result['recall'][-1] \
-                    if cls_result['recall'].size > 0 else 0
-        print('class {}, gt num: {}, det num: {}, recall: {:.4f}, ap: {:.4f}'.
-              format(i + 1, cls_result['gt_num'], cls_result['det_num'],
-                     recall, cls_result['ap']))
-    print(50 * '-')
-    print('mAP: {:.4f}'.format(mean_ap))
-    print(50 * '-')
+
+        recall = (cls_result['recall'][-1]
+                  if cls_result['recall'].size > 0 else 0)
+        precision = (cls_result['precision'][-1]
+                     if cls_result['precision'].size > 0 else 0)
+        row_data = [
+            i + 1, cls_result['gt_num'], cls_result['det_num'],
+            '{:.3f}'.format(recall), '{:.3f}'.format(precision),
+            '{:.3f}'.format(cls_result['ap'])
+        ]
+        table_data.append(row_data)
+    table_data.append(['mAP', '', '', '', '', '{:.3f}'.format(mean_ap)])
+    table = AsciiTable(table_data)
+    table.inner_footing_row_border = True
+    print(table.table)

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from six.moves import zip
 from terminaltables import AsciiTable
 
 
@@ -235,12 +236,69 @@ def average_precision(recall, precision, mode='area'):
     return ap
 
 
+def _tpfp_imagenet(det_bbox, gt_bboxes, gt_covered, default_iou_thr):
+    """Check if a detected bbox is a true positive or false positive.
+
+    Args:
+        det_bbox(ndarray): the detected bbox
+        gt_bboxes(ndarray): ground truth bboxes of this image
+        gt_covered(ndarray): indicate if gts are matched
+        default_iou_thr(float): the iou thresholds for medium and large bboxes
+    Output:
+        tuple: (tp, fp), either 0 or 1
+    """
+    bbox_max_iou = -1
+    matched_gt = -1
+    ious = bbox_overlaps(det_bbox[np.newaxis, :], gt_bboxes - 1)
+    gt_w = gt_bboxes[:, 2] - gt_bboxes[:, 0] + 1
+    gt_h = gt_bboxes[:, 3] - gt_bboxes[:, 1] + 1
+    iou_thrs = np.minimum((gt_w * gt_h) / ((gt_w + 10.0) * (gt_h + 10.0)),
+                          default_iou_thr)
+    for k in range(ious.size):
+        if gt_covered[k]:
+            continue
+        if ious[0, k] >= iou_thrs[k] and ious[0, k] > bbox_max_iou:
+            bbox_max_iou = ious[0, k]
+            matched_gt = k
+    if matched_gt >= 0:
+        gt_covered[matched_gt] = 1
+        return 1, 0
+    else:
+        return 0, 1
+
+
+def _tpfp_default(det_bbox, gt_bboxes, gt_covered, iou_thr, gt_difficults):
+    """Check if a detected bbox is a true positive or false positive
+
+    Args:
+        det_bbox(ndarray): the detected bbox
+        gt_bboxes(ndarray): ground truth bboxes of this image
+        gt_covered(ndarray): indicate if gts are matched
+        iou_thr(float): the iou thresholds
+        gt_difficults(ndarray): indicate if gts are difficult or not
+    Output:
+        tuple: (tp, fp), either 0 or 1
+    """
+    ious = bbox_overlaps(det_bbox[np.newaxis, :], gt_bboxes)
+    if ious.max() >= iou_thr:
+        if not gt_difficults[ious.argmax()]:
+            if gt_covered[ious.argmax()] == 0:
+                gt_covered[ious.argmax()] = 1
+                return 1, 0
+            else:
+                return 0, 1
+        else:
+            return 0, 0  # ignore this detected bbox
+    else:
+        return 0, 1
+
+
 def eval_map(det_results,
              gt_bboxes,
              gt_labels,
              iou_thr=0.5,
-             print_summary=True,
-             mode='area'):
+             dataset='voc12',
+             print_summary=True):
     """Evaluate mAP of a dataset
 
     Args:
@@ -248,7 +306,9 @@ def eval_map(det_results,
         gt_bboxes(list): ground truth bboxes of each image, a list of K*4 array
         gt_labels(list): ground truth labels of each image, a list of K/K*2 array
         iou_thr(float): IoU threshold
-        out_file(str or None): filename to save all precisions and recalls
+        print_summary(bool): whether to print the mAP summary
+        dataset(str): dataset name, there are minor differences in metrics
+                      for different datsets, e.g. "voc07", "voc12", "imagenet"
     Output:
         tuple: (mAP, [dict, dict, ...])
     """
@@ -258,25 +318,26 @@ def eval_map(det_results,
         dets = [det[i] for det in det_results]
         gts = []  # gt bboxes of this class
         gt_difficult = []  # difficult indicator of this class
-        for bbox, label in zip(gt_bboxes, gt_labels):
-            if label.ndim == 2 and label.shape[1] == 1:
-                label = label[:, 0]
-            if label.ndim == 1:  # no difficult info
-                gt = bbox[label == i + 1, :] if bbox.shape[0] > 0 else bbox
-                gt_difficult.append(np.zeros(gt.shape[0], dtype=np.int32))
-            else:  # with difficult info
-                cls_idx = (label[:, 0] == i + 1)
-                gt = bbox[cls_idx, :] if bbox.shape[0] > 0 else bbox
-                gt_difficult.append(label[cls_idx, 1])
-            gts.append(gt)
-
-        gt_num = sum([gt.shape[0] for gt in gts]) - sum(
-            [diff.sum() for diff in gt_difficult])
-
-        img_idxs = [
-            i * np.ones(det.shape[0], dtype=np.int32)
-            for i, det in enumerate(dets)
+        labels = [
+            label[:, 0] if label.ndim == 2 and label.shape[1] == 1 else label
+            for label in gt_labels
         ]
+        for bbox, label in zip(gt_bboxes, labels):
+            cls_idx = (label == i + 1
+                       if label.ndim == 1 else label[:, 0] == i + 1)
+            gt = bbox[cls_idx, :] if bbox.shape[0] > 0 else bbox
+            difficult = label[cls_idx, 1] if label.ndim > 1 else np.zeros(
+                gt.shape[0], dtype=np.int32)
+            gts.append(gt)
+            gt_difficult.append(difficult)
+
+        gt_num = sum([bbox.shape[0] for bbox in gts]) - sum(
+            [diff.sum() for diff in gt_difficult])
+        img_idxs = [
+            k * np.ones(det.shape[0], dtype=np.int32)
+            for k, det in enumerate(dets)
+        ]
+
         dets = np.vstack(dets)
         img_idxs = np.concatenate(img_idxs)
         # sort all detections by scores in descending order
@@ -293,21 +354,21 @@ def eval_map(det_results,
             if gts[img_idx].shape[0] == 0:
                 fp[j] = 1
                 continue
-            ious = bbox_overlaps(dets[np.newaxis, j, :], gts[img_idx])
-            if ious.max() >= iou_thr:
-                if not gt_difficult[img_idx][ious.argmax()]:
-                    if covered[img_idx][ious.argmax()] == 0:
-                        tp[j] = 1
-                        covered[img_idx][ious.argmax()] = 1
-                    else:
-                        fp[j] = 1
+            if dataset == 'imagenet':
+                tp[j], fp[j] = _tpfp_imagenet(dets[j, :], gts[img_idx],
+                                              covered[img_idx], iou_thr)
             else:
-                fp[j] = 1
+                tp[j], fp[j] = _tpfp_default(dets[j, :], gts[img_idx],
+                                             covered[img_idx], iou_thr,
+                                             gt_difficult[img_idx])
+        # calculate precision and recall
         tp = np.cumsum(tp)
         fp = np.cumsum(fp)
         eps = np.finfo(np.float32).eps
         recall = tp / np.maximum(float(gt_num), eps)
         precision = tp / np.maximum((tp + fp), eps)
+        # calculate AP
+        mode = 'area' if dataset != 'voc07' else '11points'
         ap = average_precision(recall, precision, mode)
         eval_results.append({
             'gt_num': gt_num,
@@ -320,7 +381,7 @@ def eval_map(det_results,
     for cls_result in eval_results:
         if cls_result['gt_num'] > 0:
             aps.append(cls_result['ap'])
-    mean_ap = np.array(aps).mean()
+    mean_ap = np.array(aps).mean() if aps else 0.0
     if print_summary:
         print_map_summary(mean_ap, eval_results)
     return mean_ap, eval_results

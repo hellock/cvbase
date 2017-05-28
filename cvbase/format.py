@@ -14,8 +14,9 @@ def str_list(in_list):
 
 
 def to_bool(var):
+    """Convert a variable to bool type"""
     if isinstance(var, str):
-        if str == '' or str.lower() == 'false':
+        if var == '' or var.lower() == 'false':
             return False
         else:
             return True

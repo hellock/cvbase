@@ -1,4 +1,4 @@
-from cvbase.format import int_list, float_list, str_list
+from cvbase.format import int_list, float_list, str_list, to_bool
 
 
 def test_int_list():
@@ -14,3 +14,10 @@ def test_float_list():
 def test_str_list():
     in_list = [1, 2, 3]
     assert str_list(in_list) == ['1', '2', '3']
+
+
+def test_to_bool():
+    for var in ['false', 'False', '', False, 0]:
+        assert to_bool(var) is False
+    for var in ['true', 'True', True, 1]:
+        assert to_bool(var) is True

@@ -1,8 +1,8 @@
 from os import path
 
 import pytest
-from cvbase.image import (read_img, img_from_bytes, resize, resize_by_ratio,
-                          resize_keep_ar, limit_size)
+from cvbase import (read_img, img_from_bytes, resize, resize_by_ratio,
+                    resize_keep_ar, limit_size)
 
 
 class TestImage(object):

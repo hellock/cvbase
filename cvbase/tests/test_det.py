@@ -1,6 +1,6 @@
 import numpy as np
-from cvbase.det import (bbox_overlaps, bbox_transform, bbox_transform_inv,
-                        bbox_clip, bbox_flip, bbox_normalize, bbox_denormalize)
+from cvbase import (bbox_overlaps, bbox_transform, bbox_transform_inv,
+                    bbox_clip, bbox_flip, bbox_normalize, bbox_denormalize)
 from numpy.testing import assert_array_almost_equal
 
 

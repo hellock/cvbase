@@ -1,7 +1,7 @@
 from os import makedirs, path, remove, removedirs
 
-from cvbase.io import (json_dump, json_load, pickle_dump, pickle_load,
-                       list_from_file, AsyncDumper)
+from cvbase import (json_dump, json_load, pickle_dump, pickle_load,
+                    list_from_file, AsyncDumper)
 
 
 def test_json():

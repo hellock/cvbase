@@ -1,6 +1,6 @@
 import time
 
-from cvbase.progress import ProgressBar, track_progress, track_parallel_progress
+from cvbase import ProgressBar, track_progress, track_parallel_progress
 
 
 class TestProgressBar(object):

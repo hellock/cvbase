@@ -5,13 +5,13 @@ try:
     import cPickle as pickle
 except:
     import pickle
+import yaml
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
 from multiprocessing import Process, Queue
 from os import path
-
-
-def json_dump(obj, filename, **kwargs):
-    with open(filename, 'w') as f:
-        json.dump(obj, f, **kwargs)
 
 
 def json_load(filename):
@@ -20,15 +20,38 @@ def json_load(filename):
     return obj
 
 
-def pickle_dump(obj, filename, protocol=2, **kwargs):
-    with open(filename, 'wb') as f:
-        pickle.dump(obj, f, protocol=protocol, **kwargs)
+def json_dump(obj, filename=None, **kwargs):
+    if filename is None:
+        return json.dumps(obj, **kwargs)
+    with open(filename, 'w') as f:
+        json.dump(obj, f, **kwargs)
+
+
+def yaml_load(filename, **kwargs):
+    kwargs.setdefault('Loader', Loader)
+    with open(filename, 'r') as f:
+        obj = yaml.load(f, **kwargs)
+    return obj
+
+
+def yaml_dump(obj, filename=None, **kwargs):
+    kwargs.setdefault('Dumper', Dumper)
+    if filename is None:
+        return yaml.dump(obj, **kwargs)
+    with open(filename, 'w') as f:
+        yaml.dump(obj, f, **kwargs)
 
 
 def pickle_load(filename, **kwargs):
     with open(filename, 'rb') as f:
         obj = pickle.load(f, **kwargs)
     return obj
+
+
+def pickle_dump(obj, filename, protocol=2, **kwargs):
+    kwargs.setdefault('protocol', 2)
+    with open(filename, 'wb') as f:
+        pickle.dump(obj, f, **kwargs)
 
 
 def list_from_file(filename, prefix='', offset=0, max_num=0):

@@ -17,7 +17,8 @@ class TestImage(object):
         assert img.shape == (300, 400, 3)
 
     def test_img_from_bytes(self):
-        img_bytes = open(self.img_path, 'rb').read()
+        with open(self.img_path, 'rb') as f:
+            img_bytes = f.read()
         img = img_from_bytes(img_bytes)
         assert img.shape == (300, 400, 3)
 

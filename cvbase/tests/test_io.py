@@ -1,15 +1,33 @@
 from os import makedirs, path, remove, removedirs
 
-from cvbase import (json_dump, json_load, pickle_dump, pickle_load,
-                    list_from_file, AsyncDumper)
+from cvbase import (json_dump, json_load, yaml_load, yaml_dump, pickle_dump,
+                    pickle_load, list_from_file, AsyncDumper)
 
 
 def test_json():
     tmp_filename = '.cvbase_test.tmp.json'
     test_obj = [{'a': 'abc', 'b': 1}, 2, 'c']
+    json_str = json_dump(test_obj)
+    assert json_str in [
+        '[{"a": "abc", "b": 1}, 2, "c"]', '[{"b": 1, "a": "abc"}, 2, "c"]'
+    ]
     json_dump(test_obj, tmp_filename)
     assert path.isfile(tmp_filename)
     load_obj = json_load(tmp_filename)
+    assert load_obj == test_obj
+    remove(tmp_filename)
+
+
+def test_yaml():
+    tmp_filename = '.cvbase_test.tmp.yaml'
+    test_obj = [{'a': 'abc', 'b': 1}, 2, 'c']
+    yaml_str = yaml_dump(test_obj)
+    assert yaml_str in [
+        '- {a: abc, b: 1}\n- 2\n- c\n', '- {b: 1, a: abc}\n- 2\n- c\n'
+    ]
+    yaml_dump(test_obj, tmp_filename)
+    assert path.isfile(tmp_filename)
+    load_obj = yaml_load(tmp_filename)
     assert load_obj == test_obj
     remove(tmp_filename)
 

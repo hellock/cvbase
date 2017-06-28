@@ -48,7 +48,7 @@ def pickle_load(filename, **kwargs):
     return obj
 
 
-def pickle_dump(obj, filename, protocol=2, **kwargs):
+def pickle_dump(obj, filename, **kwargs):
     kwargs.setdefault('protocol', 2)
     with open(filename, 'wb') as f:
         pickle.dump(obj, f, **kwargs)
@@ -98,33 +98,31 @@ def mkdir_or_exist(dir_name):
         os.makedirs(dir_name)
 
 
-def _scandir_py35(dir_path, ext=None):
-    if isinstance(ext, str):
-        ext = [ext]
+def _scandir_py35(dir_path, suffix=None):
     for entry in os.scandir(dir_path):
         if not entry.is_file():
             continue
         filename = entry.name
-        if ext is None:
+        if suffix is None:
             yield filename
-        elif filename.split('.')[-1] in ext:
+        elif filename.endswith(suffix):
             yield filename
 
 
-def _scandir_py(dir_path, ext=None):
-    if isinstance(ext, str):
-        ext = [ext]
+def _scandir_py(dir_path, suffix=None):
     for filename in os.listdir(dir_path):
         if not path.isfile(path.join(dir_path, filename)):
             continue
-        if ext is None:
+        if suffix is None:
             yield filename
-        elif filename.split('.')[-1] in ext:
+        elif filename.endswith(suffix):
             yield filename
 
 
-def scandir(dir_path, ext=None):
+def scandir(dir_path, suffix=None):
+    if suffix is not None and not isinstance(suffix, (str, tuple)):
+        raise TypeError('"suffix" must be a string or tuple of strings')
     if sys.version[0] == 3 and sys.version[1] >= 5:
-        return _scandir_py35(dir_path, ext)
+        return _scandir_py35(dir_path, suffix)
     else:
-        return _scandir_py(dir_path, ext)
+        return _scandir_py(dir_path, suffix)

@@ -1,7 +1,7 @@
 from os import makedirs, path, remove, removedirs
 
-from cvbase import (json_dump, json_load, yaml_load, yaml_dump, pickle_dump,
-                    pickle_load, list_from_file, AsyncDumper)
+from cvbase.io import (json_dump, json_load, yaml_load, yaml_dump, pickle_dump,
+                       pickle_load, list_from_file, AsyncDumper, scandir)
 
 
 def test_json():
@@ -71,3 +71,13 @@ def test_async_dumper():
         assert path.isfile(filename)
         remove(filename)
     removedirs(tmp_dir)
+
+
+def test_scandir():
+    folder = path.join(path.dirname(__file__), 'data')
+    assert set(scandir(folder)) == set(
+        ['filelist.txt', 'test.jpg', 'voc_labels.txt'])
+    assert set(scandir(folder, '.txt')) == set(
+        ['filelist.txt', 'voc_labels.txt'])
+    assert set(scandir(folder, ('.jpg', '.txt'))) == set(
+        ['filelist.txt', 'test.jpg', 'voc_labels.txt'])

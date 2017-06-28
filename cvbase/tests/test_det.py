@@ -1,7 +1,8 @@
 import numpy as np
 from cvbase import (bbox_overlaps, bbox_transform, bbox_transform_inv,
-                    bbox_clip, bbox_flip, bbox_normalize, bbox_denormalize)
-from numpy.testing import assert_array_almost_equal
+                    bbox_clip, bbox_flip, bbox_normalize, bbox_denormalize,
+                    set_recall_param)
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 
 class TestBboxTransform(object):
@@ -213,3 +214,21 @@ class TestEval(object):
                           [150, 150, 200, 200]])  # yapf: disable
         result = np.array([[0.08778081, 0.00019227, 0.]])
         assert_array_almost_equal(bbox_overlaps(bbox1, bbox2), result)
+        assert_array_almost_equal(bbox_overlaps(bbox2, bbox1), result.T)
+
+    def test_set_recall_param(self):
+        nums, ious = set_recall_param(300, None)
+        assert_array_equal(nums, np.array([300]))
+        assert_array_equal(ious, np.array([0.5]))
+
+        nums, ious = set_recall_param(300, 0.5)
+        assert_array_equal(nums, np.array([300]))
+        assert_array_equal(ious, np.array([0.5]))
+
+        nums, ious = set_recall_param([100, 300], 0.5)
+        assert_array_equal(nums, np.array([100, 300]))
+        assert_array_equal(ious, np.array([0.5]))
+
+        nums, ious = set_recall_param([100, 300], [0.5, 0.7])
+        assert_array_equal(nums, np.array([100, 300]))
+        assert_array_equal(ious, np.array([0.5, 0.7]))

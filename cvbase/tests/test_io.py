@@ -76,8 +76,8 @@ def test_async_dumper():
 def test_scandir():
     folder = path.join(path.dirname(__file__), 'data')
     assert set(scandir(folder)) == set(
-        ['filelist.txt', 'test.jpg', 'voc_labels.txt'])
+        ['filelist.txt', 'voc_labels.txt', 'test.jpg', 'test.mp4'])
     assert set(scandir(folder, '.txt')) == set(
         ['filelist.txt', 'voc_labels.txt'])
     assert set(scandir(folder, ('.jpg', '.txt'))) == set(
-        ['filelist.txt', 'test.jpg', 'voc_labels.txt'])
+        ['filelist.txt', 'voc_labels.txt', 'test.jpg'])

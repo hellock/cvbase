@@ -50,10 +50,11 @@ class Cache(object):
 
 class VideoReader(object):
 
-    def __init__(self, filename, cache_capacity=0):
+    def __init__(self, filename, cache_capacity=10):
         check_file_exist(filename, 'Video file not found: ' + filename)
         self._vcap = cv2.VideoCapture(filename)
-        self._cache = Cache(cache_capacity) if cache_capacity > 0 else None
+        assert cache_capacity > 0
+        self._cache = Cache(cache_capacity)
         self._position = 0
         # get basic info
         self._width = int(self._vcap.get(CAP_PROP_FRAME_WIDTH))
@@ -170,19 +171,21 @@ class VideoReader(object):
             cv2.imwrite(filename, img)
             converted += 1
             if print_interval > 0 and converted % print_interval == 0:
-                print(
-                    'video2frame progress: {}/{}'.format(converted, task_num))
+                print('video2frame progress: {}/{}'.format(converted,
+                                                           task_num))
 
     def __iter__(self):
         self._set_real_position(0)
         return self
 
-    def next(self):
+    def __next__(self):
         ret, img = self.read()
         if ret:
             return img
         else:
             raise StopIteration
+
+    next = __next__
 
     def __enter__(self):
         return self

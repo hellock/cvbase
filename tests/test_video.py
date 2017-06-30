@@ -2,7 +2,7 @@ import os
 from collections import OrderedDict
 
 import pytest
-from cvbase import Cache, VideoReader
+from cvbase import Cache, VideoReader, frames2video
 
 
 class TestCache(object):
@@ -19,15 +19,15 @@ class TestCache(object):
         for i in range(1, 4):
             cache.put('key{}'.format(i), i)
             assert cache.size == i
-        assert cache._cache == OrderedDict(
-            [('key1', 1), ('key2', 2), ('key3', 3)])
+        assert cache._cache == OrderedDict([('key1', 1), ('key2', 2), ('key3',
+                                                                       3)])
         cache.put('key4', 4)
         assert cache.size == 3
-        assert cache._cache == OrderedDict(
-            [('key2', 2), ('key3', 3), ('key4', 4)])
+        assert cache._cache == OrderedDict([('key2', 2), ('key3', 3), ('key4',
+                                                                       4)])
         cache.put('key2', 2)
-        assert cache._cache == OrderedDict(
-            [('key2', 2), ('key3', 3), ('key4', 4)])
+        assert cache._cache == OrderedDict([('key2', 2), ('key3', 3), ('key4',
+                                                                       4)])
 
     def test_get(self):
         cache = Cache(3)
@@ -43,13 +43,14 @@ class TestImage(object):
     def setup_class(cls):
         cls.video_path = os.path.join(
             os.path.dirname(__file__), 'data/test.mp4')
+        cls.num_frames = 168
 
     def test_load(self):
         v = VideoReader(self.video_path)
         assert v.width == 294
         assert v.height == 240
         assert v.fps == 25
-        assert v.frame_cnt == 168
+        assert v.frame_cnt == self.num_frames
 
     def test_read(self):
         v = VideoReader(self.video_path)
@@ -81,14 +82,23 @@ class TestImage(object):
         for img in VideoReader(self.video_path):
             cnt += 1
             assert img.shape == (240, 294, 3)
-        assert cnt == 168
+        assert cnt == self.num_frames
 
     def test_cvt2frames(self):
         v = VideoReader(self.video_path)
         frame_dir = '.cvbase_test'
         v.cvt2frames(frame_dir)
         assert os.path.isdir(frame_dir)
-        for i in range(168):
+        for i in range(self.num_frames):
+            filename = '{}/{:06d}.jpg'.format(frame_dir, i)
+            assert os.path.isfile(filename)
+            os.remove(filename)
+        os.removedirs(frame_dir)
+
+        v = VideoReader(self.video_path)
+        v.cvt2frames(frame_dir, show_progress=False)
+        assert os.path.isdir(frame_dir)
+        for i in range(self.num_frames):
             filename = '{}/{:06d}.jpg'.format(frame_dir, i)
             assert os.path.isfile(filename)
             os.remove(filename)
@@ -98,8 +108,40 @@ class TestImage(object):
         v.cvt2frames(
             frame_dir, filename_digit=3, start=100, file_start=100, ext='JPEG')
         assert os.path.isdir(frame_dir)
-        for i in range(100, 168):
+        for i in range(100, self.num_frames):
             filename = '{}/{:03d}.JPEG'.format(frame_dir, i)
             assert os.path.isfile(filename)
             os.remove(filename)
         os.removedirs(frame_dir)
+
+    def test_frames2video(self):
+        v = VideoReader(self.video_path)
+        frame_dir = '.cvbase_test'
+        out_filename = '.cvbase_test.avi'
+        v.cvt2frames(frame_dir)
+        assert os.path.isdir(frame_dir)
+        for i in range(self.num_frames):
+            filename = '{}/{:06d}.jpg'.format(frame_dir, i)
+            assert os.path.isfile(filename)
+
+        frames2video(frame_dir, out_filename)
+        v = VideoReader(out_filename)
+        assert v.fps == 30
+        assert v.frame_cnt == self.num_frames
+
+        frames2video(
+            frame_dir,
+            out_filename,
+            fps=25,
+            start=10,
+            end=50,
+            show_progress=False)
+        v = VideoReader(out_filename)
+        assert v.fps == 25
+        assert v.frame_cnt == 40
+
+        for i in range(self.num_frames):
+            filename = '{}/{:06d}.jpg'.format(frame_dir, i)
+            os.remove(filename)
+        os.removedirs(frame_dir)
+        os.remove(out_filename)

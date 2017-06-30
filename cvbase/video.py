@@ -5,6 +5,7 @@ import cv2
 
 from cvbase.io import check_file_exist, mkdir_or_exist, scandir
 from cvbase.opencv import USE_OPENCV3
+from cvbase.progress import track_progress
 
 if USE_OPENCV3:
     from cv2 import (CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FPS,
@@ -149,7 +150,7 @@ class VideoReader(object):
                    ext='jpg',
                    start=0,
                    max_num=0,
-                   print_interval=0):
+                   show_progress=True):
         mkdir_or_exist(frame_dir)
         if max_num == 0:
             task_num = self.frame_cnt - start
@@ -159,20 +160,24 @@ class VideoReader(object):
             raise ValueError('start must be less than total frame number')
         if start > 0:
             self._set_real_position(start)
-        converted = 0
-        while converted < task_num:
+
+        def write_frame(file_idx):
             ret, img = self.read()
-            if not ret:
-                break
-            file_idx = converted + file_start
-            filename = path.join(
-                frame_dir,
-                '{0:0{1}d}.{2}'.format(file_idx, filename_digit, ext))
+            filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
+                file_idx, filename_digit, ext))
             cv2.imwrite(filename, img)
-            converted += 1
-            if print_interval > 0 and converted % print_interval == 0:
-                print('video2frame progress: {}/{}'.format(converted,
-                                                           task_num))
+
+        if show_progress:
+            track_progress(write_frame,
+                           range(file_start, file_start + task_num))
+        else:
+            for i in range(task_num):
+                ret, img = self.read()
+                if not ret:
+                    break
+                filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
+                    i + file_start, filename_digit, ext))
+                cv2.imwrite(filename, img)
 
     def __iter__(self):
         self._set_real_position(0)
@@ -201,26 +206,33 @@ def frames2video(frame_dir,
                  filename_digit=6,
                  ext='jpg',
                  start=0,
-                 end=0):
+                 end=0,
+                 show_progress=True):
     """read the frame images from a directory and join them as a video
     """
     if end == 0:
-        max_idx = len([name for name in scandir(frame_dir, ext)]) - 1
-    else:
-        max_idx = end
-    first_file = path.join(frame_dir,
-                           '{0:0{1}d}.{2}'.format(start, filename_digit, ext))
+        end = len([name for name in scandir(frame_dir, ext)])
+    first_file = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
+        start, filename_digit, ext))
     check_file_exist(first_file, 'The start frame not found: ' + first_file)
     img = cv2.imread(first_file)
     height, width = img.shape[:2]
+    resolution = (width, height)
     vwriter = cv2.VideoWriter(video_file,
-                              VideoWriter_fourcc(*fourcc), fps,
-                              (width, height))
-    idx = start
-    while idx <= max_idx:
-        filename = path.join(frame_dir,
-                             '{0:0{1}d}.{2}'.format(idx, filename_digit, ext))
+                              VideoWriter_fourcc(*fourcc), fps, resolution)
+
+    def write_frame(file_idx):
+        filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
+            file_idx, filename_digit, ext))
         img = cv2.imread(filename)
         vwriter.write(img)
-        idx += 1
+
+    if show_progress:
+        track_progress(write_frame, range(start, end))
+    else:
+        for i in range(start, end):
+            filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
+                i, filename_digit, ext))
+            img = cv2.imread(filename)
+            vwriter.write(img)
     vwriter.release()

@@ -3,7 +3,7 @@ from enum import Enum
 import cv2
 import numpy as np
 
-from cvbase.image import read_img
+from cvbase.image import read_img, write_img
 
 
 class Color(Enum):
@@ -15,6 +15,11 @@ class Color(Enum):
     magenta = (255, 0, 255)
     white = (255, 255, 255)
     black = (0, 0, 0)
+
+
+def show_img(img, win_name='', wait_time=0):
+    cv2.imshow(win_name, read_img(img))
+    cv2.waitKey(wait_time)
 
 
 def draw_bboxes(img, bboxes, colors=Color.green, top_k=0, thickness=1,
@@ -53,10 +58,9 @@ def draw_bboxes(img, bboxes, colors=Color.green, top_k=0, thickness=1,
             cv2.rectangle(
                 img, left_top, right_bottom, colors[i], thickness=thickness)
     if show:
-        cv2.imshow(win_name, img)
-        cv2.waitKey(wait_time)
+        show_img(img, win_name, wait_time)
     if out_file is not None:
-        cv2.imwrite(out_file, img)
+        write_img(img, out_file)
 
 
 def voc_labels():
@@ -171,11 +175,10 @@ def draw_bboxes_with_label(img, bboxes, labels, top_k=0, bbox_color=Color.green,
                 label_text = '{}|{:.02f}'.format(label_names[i], _bboxes[j, 4])
             else:
                 label_text = label_names[i]
-            cv2.putText(img, label_text,
-                        (bboxes_int[j, 0], bboxes_int[j, 1] - 2),
+            cv2.putText(img, label_text, (bboxes_int[j, 0],
+                                          bboxes_int[j, 1] - 2),
                         cv2.FONT_HERSHEY_COMPLEX, font_scale, text_color)
     if show:
-        cv2.imshow(win_name, img)
-        cv2.waitKey(wait_time)
+        show_img(img, win_name, wait_time)
     if out_file is not None:
-        cv2.imwrite(out_file, img)
+        write_img(img, out_file)

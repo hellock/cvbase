@@ -69,6 +69,10 @@ class VideoReader(object):
         return self._vcap
 
     @property
+    def opened(self):
+        return self._vcap.isOpened()
+
+    @property
     def width(self):
         return self._width
 
@@ -106,7 +110,7 @@ class VideoReader(object):
         pos = self._position + 1
         if self._cache:
             img = self._cache.get(pos)
-            if img:
+            if img is not None:
                 ret = True
             else:
                 if self._position != self._get_real_position():
@@ -127,7 +131,7 @@ class VideoReader(object):
             return self.read()
         if self._cache:
             img = self._cache.get(frame_id)
-            if img:
+            if img is not None:
                 self._position = frame_id
                 return (True, img)
         self._set_real_position(frame_id - 1)
@@ -212,8 +216,8 @@ def frames2video(frame_dir,
     """
     if end == 0:
         end = len([name for name in scandir(frame_dir, ext)])
-    first_file = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
-        start, filename_digit, ext))
+    first_file = path.join(frame_dir,
+                           '{0:0{1}d}.{2}'.format(start, filename_digit, ext))
     check_file_exist(first_file, 'The start frame not found: ' + first_file)
     img = cv2.imread(first_file)
     height, width = img.shape[:2]

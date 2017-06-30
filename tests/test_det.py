@@ -1,7 +1,5 @@
+import cvbase as cvb
 import numpy as np
-from cvbase import (bbox_overlaps, bbox_transform, bbox_transform_inv,
-                    bbox_clip, bbox_flip, bbox_normalize, bbox_denormalize,
-                    set_recall_param)
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 
@@ -26,7 +24,7 @@ class TestBboxTransform(object):
 
     def _check_bbox_transform(self, proposals, gt):
         assert_array_almost_equal(
-            bbox_transform(proposals, gt), self._bbox_tf_2d(proposals, gt))
+            cvb.bbox_transform(proposals, gt), self._bbox_tf_2d(proposals, gt))
 
     def test_bbox_transform(self):
         # proposals: (2, 4), gt: (1, 4)
@@ -52,13 +50,13 @@ class TestBboxTransform(object):
         # proposals: (2, 2, 4), gt: (2, 2, 4)
         proposals4_2x2x4 = np.array([proposals1_2x4, proposals2_2x4])
         gt4_2x2x4 = np.array([gt1_2x4, gt2_2x4])
-        deltas4_2x2x4 = bbox_transform(proposals4_2x2x4, gt4_2x2x4)
+        deltas4_2x2x4 = cvb.bbox_transform(proposals4_2x2x4, gt4_2x2x4)
         assert_array_almost_equal(deltas4_2x2x4[1, ...],
                                   self._bbox_tf_2d(proposals2_2x4, gt2_2x4))
         # proposals: (2, 1, 4), gt: (2, 1, 4)
         proposals5_2x1x4 = proposals4_2x2x4[:, [0], :]
         gt5_2x1x4 = gt4_2x2x4[:, [0], :]
-        deltas5_2x1x4 = bbox_transform(proposals5_2x1x4, gt5_2x1x4)
+        deltas5_2x1x4 = cvb.bbox_transform(proposals5_2x1x4, gt5_2x1x4)
         assert_array_almost_equal(deltas5_2x1x4, deltas4_2x2x4[:, [0], :])
 
     def test_bbox_transform_inv(self):
@@ -70,7 +68,7 @@ class TestBboxTransform(object):
             0.24875621, -0.57851237, -0.68818444, 0.
         ]])  # yapf: disable
         assert_array_almost_equal(
-            bbox_transform_inv(proposals1_1x4, deltas1_1x8),
+            cvb.bbox_transform_inv(proposals1_1x4, deltas1_1x8),
             gt1_1x8,
             decimal=5)
         # proposals: (2, 4), deltas: (2, 8)
@@ -82,7 +80,7 @@ class TestBboxTransform(object):
         ]])  # yapf: disable
         deltas2_2x8 = np.vstack((deltas1_1x8, deltas2_1))
         assert_array_almost_equal(
-            bbox_transform_inv(proposals2_2x4, deltas2_2x8),
+            cvb.bbox_transform_inv(proposals2_2x4, deltas2_2x8),
             gt2_2x8,
             decimal=5)
         # proposals: (2, 1, 4), deltas: (2, 1, 8)
@@ -90,7 +88,7 @@ class TestBboxTransform(object):
         gt3_2x1x8 = gt2_2x8[..., np.newaxis].transpose((0, 2, 1))
         deltas3_2x1x8 = deltas2_2x8[..., np.newaxis].transpose((0, 2, 1))
         assert_array_almost_equal(
-            bbox_transform_inv(proposals3_2x1x4, deltas3_2x1x8),
+            cvb.bbox_transform_inv(proposals3_2x1x4, deltas3_2x1x8),
             gt3_2x1x8,
             decimal=5)
         # proposals: (1, 2, 4), deltas: (1, 2, 8)
@@ -98,7 +96,7 @@ class TestBboxTransform(object):
         gt4_1x2x8 = gt2_2x8[np.newaxis, ...]
         deltas4_1x2x8 = deltas2_2x8[np.newaxis, ...]
         assert_array_almost_equal(
-            bbox_transform_inv(proposals4_1x2x4, deltas4_1x2x8),
+            cvb.bbox_transform_inv(proposals4_1x2x4, deltas4_1x2x8),
             gt4_1x2x8,
             decimal=5)
 
@@ -115,26 +113,26 @@ class TestBboxTransform(object):
         gt3 = np.array([0, 0, 1023, 767])
         bboxes = np.array([bbox1, bbox2, bbox3])
         gts = np.array([gt1, gt2, gt3])
-        assert_array_almost_equal(bbox_clip(bboxes, img_size), gts)
+        assert_array_almost_equal(cvb.bbox_clip(bboxes, img_size), gts)
 
     def test_bboxes_flip(self):
         img_size = (768, 1024)
         # (1, 4)
         bboxes1 = np.array([[50, 100, 900, 700]])
         flipped1 = np.array([[123, 100, 973, 700]])
-        assert_array_almost_equal(bbox_flip(bboxes1, img_size), flipped1)
+        assert_array_almost_equal(cvb.bbox_flip(bboxes1, img_size), flipped1)
         # (2, 4)
         bboxes2 = np.tile(bboxes1, (2, 1))
         flipped2 = np.tile(flipped1, (2, 1))
-        assert_array_almost_equal(bbox_flip(bboxes2, img_size), flipped2)
+        assert_array_almost_equal(cvb.bbox_flip(bboxes2, img_size), flipped2)
         # (2, 8)
         bboxes3 = np.tile(bboxes2, (1, 2))
         flipped3 = np.tile(flipped2, (1, 2))
-        assert_array_almost_equal(bbox_flip(bboxes3, img_size), flipped3)
+        assert_array_almost_equal(cvb.bbox_flip(bboxes3, img_size), flipped3)
         # (1, 2, 8)
         bboxes4 = bboxes3[np.newaxis, ...]
         flipped4 = flipped3[np.newaxis, ...]
-        assert_array_almost_equal(bbox_flip(bboxes4, img_size), flipped4)
+        assert_array_almost_equal(cvb.bbox_flip(bboxes4, img_size), flipped4)
 
     def test_bboxes_normalize(self):
         means = [0.05, -0.05, -0.1, 0.1]
@@ -143,19 +141,19 @@ class TestBboxTransform(object):
         deltas1 = np.array([[0.12, 0.13, -0.18, 0.05]])
         norm_deltas1 = np.array([[0.7, 1.2, -0.4, -0.2]])
         assert_array_almost_equal(
-            bbox_normalize(deltas1, means, stds), norm_deltas1)
+            cvb.bbox_normalize(deltas1, means, stds), norm_deltas1)
         # deltas: (2, 4), means: (4, )
         means = np.array(means)
         stds = np.array(stds)
         deltas2 = np.tile(deltas1, (2, 1))
         norm_deltas2 = np.tile(norm_deltas1, (2, 1))
         assert_array_almost_equal(
-            bbox_normalize(deltas2, means, stds), norm_deltas2)
+            cvb.bbox_normalize(deltas2, means, stds), norm_deltas2)
         # deltas: (2, 8), means: (4, )
         deltas3 = np.tile(deltas2, (1, 2))
         norm_deltas3 = np.tile(norm_deltas2, (1, 2))
         assert_array_almost_equal(
-            bbox_normalize(deltas3, means, stds), norm_deltas3)
+            cvb.bbox_normalize(deltas3, means, stds), norm_deltas3)
         # deltas: (2, 8), means: (8, )
         deltas4 = deltas3
         means = np.hstack((means, means))
@@ -163,12 +161,12 @@ class TestBboxTransform(object):
         norm_deltas4 = norm_deltas3
         norm_deltas4[:, 4:8] = norm_deltas4[:, 4:8] / 2
         assert_array_almost_equal(
-            bbox_normalize(deltas4, means, stds), norm_deltas4)
+            cvb.bbox_normalize(deltas4, means, stds), norm_deltas4)
         # deltas: (3, 2, 8), means: (8, )
         deltas5 = np.stack((deltas4, deltas4, deltas4))
         norm_deltas5 = np.stack((norm_deltas4, norm_deltas4, norm_deltas4))
         assert_array_almost_equal(
-            bbox_normalize(deltas5, means, stds), norm_deltas5)
+            cvb.bbox_normalize(deltas5, means, stds), norm_deltas5)
 
     def test_bboxes_denormalize(self):
         means = [0.05, -0.05, -0.1, 0.1]
@@ -177,19 +175,19 @@ class TestBboxTransform(object):
         deltas1 = np.array([[0.12, 0.13, -0.18, 0.05]])
         norm_deltas1 = np.array([[0.7, 1.2, -0.4, -0.2]])
         assert_array_almost_equal(
-            bbox_denormalize(norm_deltas1, means, stds), deltas1)
+            cvb.bbox_denormalize(norm_deltas1, means, stds), deltas1)
         # deltas: (2, 4), means: (4, )
         means = np.array(means)
         stds = np.array(stds)
         deltas2 = np.tile(deltas1, (2, 1))
         norm_deltas2 = np.tile(norm_deltas1, (2, 1))
         assert_array_almost_equal(
-            bbox_denormalize(norm_deltas2, means, stds), deltas2)
+            cvb.bbox_denormalize(norm_deltas2, means, stds), deltas2)
         # deltas: (2, 8), means: (4, )
         deltas3 = np.tile(deltas2, (1, 2))
         norm_deltas3 = np.tile(norm_deltas2, (1, 2))
         assert_array_almost_equal(
-            bbox_denormalize(norm_deltas3, means, stds), deltas3)
+            cvb.bbox_denormalize(norm_deltas3, means, stds), deltas3)
         # deltas: (2, 8), means: (8, )
         deltas4 = deltas3
         means = np.hstack((means, means))
@@ -197,12 +195,12 @@ class TestBboxTransform(object):
         norm_deltas4 = norm_deltas3
         norm_deltas4[:, 4:8] = norm_deltas4[:, 4:8] / 2
         assert_array_almost_equal(
-            bbox_denormalize(norm_deltas4, means, stds), deltas4)
+            cvb.bbox_denormalize(norm_deltas4, means, stds), deltas4)
         # deltas: (2, 2, 8), means: (8, )
         deltas5 = np.stack((deltas4, deltas4))
         norm_deltas5 = np.stack((norm_deltas4, norm_deltas4))
         assert_array_almost_equal(
-            bbox_denormalize(norm_deltas5, means, stds), deltas5)
+            cvb.bbox_denormalize(norm_deltas5, means, stds), deltas5)
 
 
 class TestEval(object):
@@ -213,22 +211,22 @@ class TestEval(object):
                           [100, 100, 150, 150],
                           [150, 150, 200, 200]])  # yapf: disable
         result = np.array([[0.08778081, 0.00019227, 0.]])
-        assert_array_almost_equal(bbox_overlaps(bbox1, bbox2), result)
-        assert_array_almost_equal(bbox_overlaps(bbox2, bbox1), result.T)
+        assert_array_almost_equal(cvb.bbox_overlaps(bbox1, bbox2), result)
+        assert_array_almost_equal(cvb.bbox_overlaps(bbox2, bbox1), result.T)
 
     def test_set_recall_param(self):
-        nums, ious = set_recall_param(300, None)
+        nums, ious = cvb.set_recall_param(300, None)
         assert_array_equal(nums, np.array([300]))
         assert_array_equal(ious, np.array([0.5]))
 
-        nums, ious = set_recall_param(300, 0.5)
+        nums, ious = cvb.set_recall_param(300, 0.5)
         assert_array_equal(nums, np.array([300]))
         assert_array_equal(ious, np.array([0.5]))
 
-        nums, ious = set_recall_param([100, 300], 0.5)
+        nums, ious = cvb.set_recall_param([100, 300], 0.5)
         assert_array_equal(nums, np.array([100, 300]))
         assert_array_equal(ious, np.array([0.5]))
 
-        nums, ious = set_recall_param([100, 300], [0.5, 0.7])
+        nums, ious = cvb.set_recall_param([100, 300], [0.5, 0.7])
         assert_array_equal(nums, np.array([100, 300]))
         assert_array_equal(ious, np.array([0.5, 0.7]))

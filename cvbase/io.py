@@ -85,12 +85,12 @@ class AsyncDumper(Process):
         self._io_queue.put((obj, filename))
 
 
-def check_file_exist(filename, msg):
+def check_file_exist(filename, msg_tmpl='file "{}" not exist:'):
     if not path.isfile(filename):
-        try:
-            raise FileNotFoundError(msg)
-        except:
-            raise IOError(msg)
+        if sys.version_info > (3, 3):
+            raise FileNotFoundError(msg_tmpl.format(filename))
+        else:
+            raise IOError(msg_tmpl.format(filename))
 
 
 def mkdir_or_exist(dir_name):

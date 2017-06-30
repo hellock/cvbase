@@ -1,26 +1,26 @@
 import time
 
-from cvbase import ProgressBar, track_progress, track_parallel_progress
+import cvbase as cvb
 
 
 class TestProgressBar(object):
 
     def test_start(self, capsys):
         # without total task num
-        prog_bar = ProgressBar()
+        prog_bar = cvb.ProgressBar()
         out, _ = capsys.readouterr()
         assert out == 'completed: 0, elapsed: 0s'
-        prog_bar = ProgressBar(start=False)
+        prog_bar = cvb.ProgressBar(start=False)
         out, _ = capsys.readouterr()
         assert out == ''
         prog_bar.start()
         out, _ = capsys.readouterr()
         assert out == 'completed: 0, elapsed: 0s'
         # with total task num
-        prog_bar = ProgressBar(10)
+        prog_bar = cvb.ProgressBar(10)
         out, _ = capsys.readouterr()
         assert out == '[{}] 0/10, elapsed: 0s, ETA:'.format(' ' * 50)
-        prog_bar = ProgressBar(10, start=False)
+        prog_bar = cvb.ProgressBar(10, start=False)
         out, _ = capsys.readouterr()
         assert out == ''
         prog_bar.start()
@@ -29,14 +29,14 @@ class TestProgressBar(object):
 
     def test_update(self, capsys):
         # without total task num
-        prog_bar = ProgressBar()
+        prog_bar = cvb.ProgressBar()
         capsys.readouterr()
         time.sleep(1)
         prog_bar.update()
         out, _ = capsys.readouterr()
         assert out == 'completed: 1, elapsed: 1s, 1.0 tasks/s'
         # with total task num
-        prog_bar = ProgressBar(10)
+        prog_bar = cvb.ProgressBar(10)
         capsys.readouterr()
         time.sleep(1)
         prog_bar.update()
@@ -52,7 +52,7 @@ def sleep_1s(num):
 
 def test_track_progress_list(capsys):
 
-    ret = track_progress(sleep_1s, [1, 2, 3], bar_width=3)
+    ret = cvb.track_progress(sleep_1s, [1, 2, 3], bar_width=3)
     out, _ = capsys.readouterr()
     assert out == ('[   ] 0/3, elapsed: 0s, ETA:'
                    '\r[>  ] 1/3, 1.0 task/s, elapsed: 1s, ETA:     2s'
@@ -63,7 +63,8 @@ def test_track_progress_list(capsys):
 
 def test_track_progress_iterator(capsys):
 
-    ret = track_progress(sleep_1s, ((i for i in [1, 2, 3]), 3), bar_width=3)
+    ret = cvb.track_progress(
+        sleep_1s, ((i for i in [1, 2, 3]), 3), bar_width=3)
     out, _ = capsys.readouterr()
     assert out == ('[   ] 0/3, elapsed: 0s, ETA:'
                    '\r[>  ] 1/3, 1.0 task/s, elapsed: 1s, ETA:     2s'
@@ -74,7 +75,8 @@ def test_track_progress_iterator(capsys):
 
 def test_track_parallel_progress_list(capsys):
 
-    results = track_parallel_progress(sleep_1s, [1, 2, 3, 4], 2, bar_width=4)
+    results = cvb.track_parallel_progress(
+        sleep_1s, [1, 2, 3, 4], 2, bar_width=4)
     out, _ = capsys.readouterr()
     assert out == ('[    ] 0/4, elapsed: 0s, ETA:'
                    '\r[>   ] 1/4, 1.0 task/s, elapsed: 1s, ETA:     3s'
@@ -86,7 +88,7 @@ def test_track_parallel_progress_list(capsys):
 
 def test_track_parallel_progress_iterator(capsys):
 
-    results = track_parallel_progress(
+    results = cvb.track_parallel_progress(
         sleep_1s, ((i for i in [1, 2, 3, 4]), 4), 2, bar_width=4)
     out, _ = capsys.readouterr()
     assert out == ('[    ] 0/4, elapsed: 0s, ETA:'

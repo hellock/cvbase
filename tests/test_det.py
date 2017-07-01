@@ -1,6 +1,8 @@
 import cvbase as cvb
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+import pytest
+from numpy.testing import (assert_almost_equal, assert_array_almost_equal,
+                           assert_array_equal)
 
 
 class TestBboxTransform(object):
@@ -230,3 +232,98 @@ class TestEval(object):
         nums, ious = cvb.set_recall_param([100, 300], [0.5, 0.7])
         assert_array_equal(nums, np.array([100, 300]))
         assert_array_equal(ious, np.array([0.5, 0.7]))
+
+    def test_average_precision(self):
+        recall = np.arange(0.05, 1, 0.05) + 1e-6
+        precision = np.arange(0.95, 0, -0.05)
+        precision[1::2] += 0.05
+        assert_almost_equal(
+            cvb.average_precision(recall, precision), 0.4975, decimal=4)
+        assert_almost_equal(
+            cvb.average_precision(recall, precision, '11points'),
+            5.9 / 11,
+            decimal=4)
+        with pytest.raises(ValueError):
+            cvb.average_precision(recall, precision, 'invalid_mode')
+
+    def test_print_recall_summary(self, capsys):
+        recalls = np.array([[0.9, 0.8, 0.4], [0.7777, 0.6, 0.3]])
+        proposal_nums = [50, 100]
+        iou_thrs = [0.5, 0.7, 0.9]
+        cvb.print_recall_summary(recalls, proposal_nums, iou_thrs)
+        out, _ = capsys.readouterr()
+        table = ('+-----+-------+-------+-------+\n'
+                 '|     | 0.5   | 0.7   | 0.9   |\n'
+                 '+-----+-------+-------+-------+\n'
+                 '| 50  | 0.900 | 0.800 | 0.400 |\n'
+                 '| 100 | 0.778 | 0.600 | 0.300 |\n'
+                 '+-----+-------+-------+-------+\n')
+        assert out == table
+
+        cvb.print_recall_summary(
+            recalls, proposal_nums, iou_thrs, row_idxs=[1])
+        out, _ = capsys.readouterr()
+        table = ('+-----+-------+-------+-------+\n'
+                 '|     | 0.5   | 0.7   | 0.9   |\n'
+                 '+-----+-------+-------+-------+\n'
+                 '| 100 | 0.778 | 0.600 | 0.300 |\n'
+                 '+-----+-------+-------+-------+\n')
+        assert out == table
+
+        cvb.print_recall_summary(
+            recalls, proposal_nums, iou_thrs, col_idxs=[0, 2])
+        out, _ = capsys.readouterr()
+        table = ('+-----+-------+-------+\n'
+                 '|     | 0.5   | 0.9   |\n'
+                 '+-----+-------+-------+\n'
+                 '| 50  | 0.900 | 0.400 |\n'
+                 '| 100 | 0.778 | 0.300 |\n'
+                 '+-----+-------+-------+\n')
+        assert out == table
+
+    def test_print_map_summary(self, capsys):
+        # the following data are not reasonable, just for testing
+        mean_ap = 0.55
+        results = [{
+            'gt_num': 10,
+            'det_num': 40,
+            'recall': np.array([0.1, 0.2, 0.3, 0.4]),
+            'precision': np.array([0.4, 0.3, 0.2, 0.1]),
+            'ap': 0.66
+        }, {
+            'gt_num': 15,
+            'det_num': 50,
+            'recall': np.array([0.25, 0.35, 0.45]),
+            'precision': np.array([0.32, 0.26, 0.17]),
+            'ap': 0.44
+        }]
+        cvb.print_map_summary(mean_ap, results)
+        out, _ = capsys.readouterr()
+        table = ('+-------+-----+------+--------+-----------+-------+\n'
+                 '| class | gts | dets | recall | precision | ap    |\n'
+                 '+-------+-----+------+--------+-----------+-------+\n'
+                 '| 1     | 10  | 40   | 0.400  | 0.100     | 0.660 |\n'
+                 '| 2     | 15  | 50   | 0.450  | 0.170     | 0.440 |\n'
+                 '+-------+-----+------+--------+-----------+-------+\n'
+                 '| mAP   |     |      |        |           | 0.550 |\n'
+                 '+-------+-----+------+--------+-----------+-------+\n')
+        assert out == table
+
+        results.append({
+            'gt_num': 5,
+            'det_num': 0,
+            'recall': np.array([]),
+            'precision': np.array([]),
+            'ap': 0.44
+        })
+        cvb.print_map_summary(mean_ap, results)
+        out, _ = capsys.readouterr()
+        table = ('+-------+-----+------+--------+-----------+-------+\n'
+                 '| class | gts | dets | recall | precision | ap    |\n'
+                 '+-------+-----+------+--------+-----------+-------+\n'
+                 '| 1     | 10  | 40   | 0.400  | 0.100     | 0.660 |\n'
+                 '| 2     | 15  | 50   | 0.450  | 0.170     | 0.440 |\n'
+                 '| 2     | 5   | 0    | 0      | 0         | 0.000 |\n'
+                 '+-------+-----+------+--------+-----------+-------+\n'
+                 '| mAP   |     |      |        |           | 0.550 |\n'
+                 '+-------+-----+------+--------+-----------+-------+\n')

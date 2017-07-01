@@ -143,11 +143,13 @@ def print_recall_summary(recalls,
 
     Args:
         recalls(ndarray): calculated from `bbox_recalls`
-        proposal_nums(ndarray): top N proposals
-        iou_thrs(ndarray): iou thresholds
+        proposal_nums(ndarray or list): top N proposals
+        iou_thrs(ndarray or list): iou thresholds
         row_idxs(ndarray): which rows(proposal nums) to print
         col_idxs(ndarray): which cols(iou thresholds) to print
     """
+    proposal_nums = np.array(proposal_nums, dtype=np.int32)
+    iou_thrs = np.array(iou_thrs)
     if row_idxs is None:
         row_idxs = np.arange(proposal_nums.size)
     if col_idxs is None:

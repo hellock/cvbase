@@ -7,21 +7,6 @@ def list_cast(in_list, dst_type):
     return list(map(dst_type, in_list))
 
 
-def int_list(in_list):
-    """(deprecated)Convert a list of items to a list of int"""
-    return list(map(int, in_list))
-
-
-def float_list(in_list):
-    """(deprecated)Convert a list of items to a list of float"""
-    return list(map(float, in_list))
-
-
-def str_list(in_list):
-    """(deprecated)Convert a list of items to a list of str"""
-    return list(map(str, in_list))
-
-
 def to_bool(var):
     """Convert a variable to bool type"""
     if isinstance(var, str):
@@ -30,3 +15,24 @@ def to_bool(var):
         else:
             return True
     return bool(var)
+
+
+def slice_list(in_list, lens):
+    """Slice a list into several sub lists by a list of given length
+
+    Args:
+        in_list(list): the list to be sliced
+        lens(int or list): the expected length of each out list
+    Output:
+        list: list of sliced list
+    """
+    if not isinstance(lens, list):
+        raise TypeError('"indices" must be a list of integers')
+    elif sum(lens) != len(in_list):
+        raise ValueError('list length and summation of lens do not match')
+    out_list = []
+    idx = 0
+    for i in range(len(lens)):
+        out_list.append(in_list[idx:idx + lens[i]])
+        idx += lens[i]
+    return out_list

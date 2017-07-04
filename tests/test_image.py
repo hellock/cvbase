@@ -1,3 +1,4 @@
+import os
 from os import path
 
 import cvbase as cvb
@@ -9,18 +10,37 @@ class TestImage(object):
 
     @classmethod
     def setup_class(cls):
-        # the test img shape is (300, 400, 3)
-        cls.img_path = path.join(path.dirname(__file__), 'data/test.jpg')
+        # the test img resolution is 400x300
+        cls.img_path = path.join(path.dirname(__file__), 'data/color.jpg')
+        cls.gray_img_path = path.join(
+            path.dirname(__file__), 'data/grayscale.jpg')
 
     def test_read_img(self):
         img = cvb.read_img(self.img_path)
         assert img.shape == (300, 400, 3)
+        img = cvb.read_img(self.img_path, cvb.IMREAD_GRAYSCALE)
+        assert img.shape == (300, 400)
+        img = cvb.read_img(self.gray_img_path)
+        assert img.shape == (300, 400, 3)
+        img = cvb.read_img(self.gray_img_path, cvb.IMREAD_UNCHANGED)
+        assert img.shape == (300, 400)
+        img = cvb.read_img(img)
+        np.testing.assert_array_equal(img, cvb.read_img(img))
+        with pytest.raises(TypeError):
+            cvb.read_img(1)
 
     def test_img_from_bytes(self):
         with open(self.img_path, 'rb') as f:
             img_bytes = f.read()
         img = cvb.img_from_bytes(img_bytes)
         assert img.shape == (300, 400, 3)
+
+    def test_write_img(self):
+        img = cvb.read_img(self.img_path)
+        out_file = '.cvbase_test.tmp.jpg'
+        cvb.write_img(img, out_file)
+        assert cvb.read_img(out_file).shape == (300, 400, 3)
+        os.remove(out_file)
 
     def test_scale_size(self):
         assert cvb.scale_size((300, 200), 0.5) == (150, 100)

@@ -5,7 +5,7 @@ from cvbase.io import check_file_exist
 from cvbase.opencv import IMREAD_COLOR, INTER_LINEAR
 
 
-def read_img(img_or_path):
+def read_img(img_or_path, flag=IMREAD_COLOR):
     """Read an image
 
     Args:
@@ -18,7 +18,7 @@ def read_img(img_or_path):
     elif isinstance(img_or_path, str):
         check_file_exist(img_or_path,
                          'img file does not exist: {}'.format(img_or_path))
-        return cv2.imread(img_or_path)
+        return cv2.imread(img_or_path, flag)
     else:
         raise TypeError('"img" must be a numpy array or a filename')
 

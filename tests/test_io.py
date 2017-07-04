@@ -86,11 +86,13 @@ def test_check_file_exist():
 
 def test_scandir():
     folder = path.join(path.dirname(__file__), 'data')
-    assert set(cvb.scandir(folder)) == set(
-        ['filelist.txt', 'voc_labels.txt', 'test.jpg', 'test.mp4'])
+    assert set(cvb.scandir(folder)) == set([
+        'filelist.txt', 'voc_labels.txt', 'color.jpg', 'grayscale.jpg',
+        'test.mp4'
+    ])
     assert set(cvb.scandir(folder, '.txt')) == set(
         ['filelist.txt', 'voc_labels.txt'])
     assert set(cvb.scandir(folder, ('.jpg', '.txt'))) == set(
-        ['filelist.txt', 'voc_labels.txt', 'test.jpg'])
+        ['filelist.txt', 'voc_labels.txt', 'color.jpg', 'grayscale.jpg'])
     with pytest.raises(TypeError):
         cvb.scandir(folder, 111)

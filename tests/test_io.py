@@ -18,6 +18,14 @@ def test_json():
     assert load_obj == test_obj
     remove(tmp_filename)
 
+    with open(tmp_filename, 'w') as f:
+        cvb.json_dump(test_obj, f)
+    assert path.isfile(tmp_filename)
+    with open(tmp_filename, 'r') as f:
+        load_obj = cvb.json_load(f)
+    assert load_obj == test_obj
+    remove(tmp_filename)
+
 
 def test_yaml():
     tmp_filename = '.cvbase_test.tmp.yaml'
@@ -32,6 +40,14 @@ def test_yaml():
     assert load_obj == test_obj
     remove(tmp_filename)
 
+    with open(tmp_filename, 'w') as f:
+        cvb.yaml_dump(test_obj, f)
+    assert path.isfile(tmp_filename)
+    with open(tmp_filename, 'r') as f:
+        load_obj = cvb.yaml_load(f)
+    assert load_obj == test_obj
+    remove(tmp_filename)
+
 
 def test_pickle():
     tmp_filename = '.cvbase_test.tmp.pkl'
@@ -39,6 +55,14 @@ def test_pickle():
     cvb.pickle_dump(test_obj, tmp_filename)
     assert path.isfile(tmp_filename)
     load_obj = cvb.pickle_load(tmp_filename)
+    assert load_obj == test_obj
+    remove(tmp_filename)
+
+    with open(tmp_filename, 'w') as f:
+        cvb.pickle_dump(test_obj, f)
+    assert path.isfile(tmp_filename)
+    with open(tmp_filename, 'r') as f:
+        load_obj = cvb.pickle_load(f)
     assert load_obj == test_obj
     remove(tmp_filename)
 

@@ -14,44 +14,74 @@ from multiprocessing import Process, Queue
 from os import path
 
 
-def json_load(filename):
-    with open(filename, 'r') as f:
-        obj = json.load(f)
+def json_load(file):
+    if isinstance(file, str):
+        with open(file, 'r') as f:
+            obj = json.load(f)
+    elif hasattr(file, 'read'):
+        obj = json.load(file)
+    else:
+        raise TypeError('"file" must be a filename str or a file-object')
     return obj
 
 
-def json_dump(obj, filename=None, **kwargs):
-    if filename is None:
+def json_dump(obj, file=None, **kwargs):
+    if file is None:
         return json.dumps(obj, **kwargs)
-    with open(filename, 'w') as f:
-        json.dump(obj, f, **kwargs)
+    elif isinstance(file, str):
+        with open(file, 'w') as f:
+            json.dump(obj, f, **kwargs)
+    elif hasattr(file, 'write'):
+        json.dump(obj, file, **kwargs)
+    else:
+        raise TypeError('"file" must be a filename str or a file-object')
 
 
-def yaml_load(filename, **kwargs):
+def yaml_load(file, **kwargs):
     kwargs.setdefault('Loader', Loader)
-    with open(filename, 'r') as f:
-        obj = yaml.load(f, **kwargs)
+    if isinstance(file, str):
+        with open(file, 'r') as f:
+            obj = yaml.load(f, **kwargs)
+    elif hasattr(file, 'read'):
+        obj = yaml.load(file, **kwargs)
+    else:
+        raise TypeError('"file" must be a filename str or a file-object')
     return obj
 
 
-def yaml_dump(obj, filename=None, **kwargs):
+def yaml_dump(obj, file=None, **kwargs):
     kwargs.setdefault('Dumper', Dumper)
-    if filename is None:
+    if file is None:
         return yaml.dump(obj, **kwargs)
-    with open(filename, 'w') as f:
-        yaml.dump(obj, f, **kwargs)
+    elif isinstance(file, str):
+        with open(file, 'w') as f:
+            yaml.dump(obj, f, **kwargs)
+    elif hasattr(file, 'write'):
+        yaml.dump(obj, file, **kwargs)
+    else:
+        raise TypeError('"file" must be a filename str or a file-object')
 
 
-def pickle_load(filename, **kwargs):
-    with open(filename, 'rb') as f:
-        obj = pickle.load(f, **kwargs)
+def pickle_load(file, **kwargs):
+    if isinstance(file, str):
+        with open(file, 'rb') as f:
+            obj = pickle.load(f, **kwargs)
+    elif hasattr(file, 'read'):
+        obj = pickle.load(file, **kwargs)
+    else:
+        raise TypeError('"file" must be a filename str or a file-object')
     return obj
 
 
-def pickle_dump(obj, filename, **kwargs):
+def pickle_dump(obj, file, **kwargs):
     kwargs.setdefault('protocol', 2)
-    with open(filename, 'wb') as f:
-        pickle.dump(obj, f, **kwargs)
+    if isinstance(file, str):
+        with open(file, 'wb') as f:
+            pickle.dump(obj, f, **kwargs)
+    elif hasattr(file, 'write'):
+        pickle.dump(obj, file, **kwargs)
+    else:
+        raise TypeError('"file" must be a filename str or a file-object')
 
 
 def list_from_file(filename, prefix='', offset=0, max_num=0):

@@ -58,10 +58,10 @@ def test_pickle():
     assert load_obj == test_obj
     remove(tmp_filename)
 
-    with open(tmp_filename, 'w') as f:
+    with open(tmp_filename, 'wb') as f:
         cvb.pickle_dump(test_obj, f)
     assert path.isfile(tmp_filename)
-    with open(tmp_filename, 'r') as f:
+    with open(tmp_filename, 'rb') as f:
         load_obj = cvb.pickle_load(f)
     assert load_obj == test_obj
     remove(tmp_filename)

@@ -13,10 +13,11 @@ wget https://github.com/opencv/opencv/archive/$OPENCV_VERSION.tar.gz
 tar -xf $OPENCV_VERSION.tar.gz --strip-components=1
 mkdir build && cd build
 
-COMMON_OPTIONS="-DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=$OPENCV_INSTALL_PATH -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DWITH_IPP=OFF -DBUILD_DOCS=OFF -DBUILD_opencv_java=OFF -DBUILD_opencv_ml=OFF -DBUILD_opencv_objdetect=OFF -DBUILD_opencv_legacy=OFF"
+COMMON_OPTIONS="-DCMAKE_BUILD_TYPE=RELEASE-DCMAKE_INSTALL_PREFIX=$OPENCV_INSTALL_PATH -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DWITH_IPP=OFF -DBUILD_DOCS=OFF -DBUILD_opencv_java=OFF -DBUILD_opencv_ml=OFF -DBUILD_opencv_objdetect=OFF -DBUILD_opencv_legacy=OFF -DBUILD_opencv_superres=OFF -DBUILD_opencv_calib3d=OFF"
 if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
     cmake $COMMON_OPTIONS \
     -DBUILD_opencv_python3=OFF \
+    -DPYTHON2LIBS_FOUND=ON \
     -DPYTHON2_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
     -DPYTHON2_VERSION_STRING=$(python -c "from platform import python_version; print(python_version())") \
     -DPYTHON2_INCLUDE_PATH=$(python -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())") \
@@ -27,6 +28,7 @@ if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
 else 
     cmake $COMMON_OPTIONS \
     -DBUILD_opencv_python2=OFF \
+    -DPYTHON3LIBS_FOUND=ON \
     -DPYTHON3_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
     -DPYTHON3_VERSION_STRING=$(python -c "from platform import python_version; print(python_version())") \
     -DPYTHON3_INCLUDE_PATH=$(python -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())") \

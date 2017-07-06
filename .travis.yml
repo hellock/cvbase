@@ -2,6 +2,34 @@ sudo: required
 dist: trusty
 language: python
 
+matrix:
+  include:
+  - python: "2.7"
+    env: OPENCV_VERSION=3.2.0
+  - python: "3.4"
+    env: OPENCV_VERSION=3.2.0
+  - python: "3.5"
+    env: OPENCV_VERSION=3.2.0
+  - python: "3.6"
+    env: OPENCV_VERSION=3.2.0
+  - python: "2.7"
+    env: OPENCV_VERSION=2.4.13.2
+  - python: "3.4"
+    env: OPENCV_VERSION=2.4.13.2
+  - python: "3.5"
+    env: OPENCV_VERSION=2.4.13.2
+  - python: "3.6"
+    env: OPENCV_VERSION=2.4.13.2
+  
+env:
+  global:
+    - OPENCV_INSTALL_PATH=$HOME/opencv_${OPENCV_VERSION}_install
+  
+cache:
+  pip: true
+  directories:
+    - $OPENCV_INSTALL_PATH
+
 before_install:
   - sudo add-apt-repository -y ppa:mc3man/trusty-media
   - sudo apt-get update
@@ -12,22 +40,6 @@ before_install:
 install:
   - pip install -r requirements.txt
   - pip install codecov
-
-cache:
-  pip: true
-  directories:
-    - $OPENCV_INSTALL_PATH
-
-env:
-  global:
-    - OPENCV_VERSION=3.2.0
-    - OPENCV_INSTALL_PATH=$HOME/opencv_${OPENCV_VERSION}_install
-
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
 
 script: coverage run --source=cvbase setup.py test
 

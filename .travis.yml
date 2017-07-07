@@ -23,6 +23,7 @@ matrix:
   
 env:
   global:
+    - OPENCV_SRC_PATH=$HOME/opencv_src
     - OPENCV_INSTALL_PATH=$HOME/opencv_install
   
 cache:

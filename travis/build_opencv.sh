@@ -6,20 +6,23 @@ if [[ -d "$OPENCV_INSTALL_PATH/lib" ]]; then
     cp $OPENCV_INSTALL_PATH/lib/cv2.so $PYTHON_PACKAGES_PATH
     exit 0
 else
-    echo "no cached opencv libs, start building"
+    echo "no cached opencv libs found, try building from source"
 fi
-mkdir -p $HOME/opencv_src && cd $HOME/opencv_src
+mkdir -p $OPENCV_SRC_PATH && cd $OPENCV_SRC_PATH
+echo "downloading opencv sources to $OPENCV_SRC_PATH"
 wget https://github.com/opencv/opencv/archive/$OPENCV_VERSION.tar.gz
+echo "extract to $PWD"
 tar -xf $OPENCV_VERSION.tar.gz --strip-components=1
 mkdir build && cd build
 
-if [[ ("$OPENCV_VERSION" == 3* ) && ("$TRAVIS_PYTHON_VERSION" == 2*) ]]; then
+if [[ ("$OPENCV_VERSION" == 3*) && ("$TRAVIS_PYTHON_VERSION" == 2*) ]]; then
     PYV="PYTHON2"
-elif [[ ("$OPENCV_VERSION" == 3* ) && ("$TRAVIS_PYTHON_VERSION" == 3*) ]]; then
+elif [[ ("$OPENCV_VERSION" == 3*) && ("$TRAVIS_PYTHON_VERSION" == 3*) ]]; then
     PYV="PYTHON3"
 else
     PYV="PYTHON"
 fi
+echo "build python version $PYV"
 
 cmake -DCMAKE_BUILD_TYPE=RELEASE \
 -DCMAKE_INSTALL_PREFIX=$OPENCV_INSTALL_PATH \

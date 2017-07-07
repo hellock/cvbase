@@ -21,15 +21,14 @@ else
     PYV="PYTHON"
 fi
 
-cmake $COMMON_OPTIONS \
--DCMAKE_BUILD_TYPE=RELEASE \
+cmake -DCMAKE_BUILD_TYPE=RELEASE \
 -DCMAKE_INSTALL_PREFIX=$OPENCV_INSTALL_PATH \
 -DBUILD_SHARED_LIBS=OFF \
 -DBUILD_TESTS=OFF \
 -DBUILD_PERF_TESTS=OFF \
--DWITH_IPP=OFF \
 -DBUILD_DOCS=OFF \
--DBUILD_opencv_java=OFF
+-DBUILD_opencv_java=OFF \ 
+-DWITH_IPP=OFF \
 -D${PYV}LIBS_FOUND=ON \
 -D${PYV}_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
 -D${PYV}_VERSION_STRING=$(python -c "from platform import python_version; print(python_version())") \

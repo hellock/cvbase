@@ -30,7 +30,6 @@ cmake $COMMON_OPTIONS \
 -DWITH_IPP=OFF \
 -DBUILD_DOCS=OFF \
 -DBUILD_opencv_java=OFF
--DBUILD_opencv_python3=OFF \
 -D${PYV}LIBS_FOUND=ON \
 -D${PYV}_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
 -D${PYV}_VERSION_STRING=$(python -c "from platform import python_version; print(python_version())") \

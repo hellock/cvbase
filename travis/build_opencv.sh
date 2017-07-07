@@ -1,3 +1,4 @@
+set -x
 PYTHON_PACKAGES_PATH=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
 
 echo "chekcing dir $OPENCV_INSTALL_PATH/lib"
@@ -9,9 +10,7 @@ else
     echo "no cached opencv libs found, try building from source"
 fi
 mkdir -p $OPENCV_SRC_PATH && cd $OPENCV_SRC_PATH
-echo "downloading opencv sources to $OPENCV_SRC_PATH"
 wget https://github.com/opencv/opencv/archive/$OPENCV_VERSION.tar.gz
-echo "extract to $PWD"
 tar -xf $OPENCV_VERSION.tar.gz --strip-components=1
 mkdir build && cd build
 
@@ -22,7 +21,6 @@ elif [[ ("$OPENCV_VERSION" == 3*) && ("$TRAVIS_PYTHON_VERSION" == 3*) ]]; then
 else
     PYV="PYTHON"
 fi
-echo "build python version $PYV"
 
 cmake -DCMAKE_BUILD_TYPE=RELEASE \
 -DCMAKE_INSTALL_PREFIX=$OPENCV_INSTALL_PATH \
@@ -30,7 +28,7 @@ cmake -DCMAKE_BUILD_TYPE=RELEASE \
 -DBUILD_TESTS=OFF \
 -DBUILD_PERF_TESTS=OFF \
 -DBUILD_DOCS=OFF \
--DBUILD_opencv_java=OFF \ 
+-DBUILD_opencv_java=OFF \
 -DWITH_IPP=OFF \
 -D${PYV}LIBS_FOUND=ON \
 -D${PYV}_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \

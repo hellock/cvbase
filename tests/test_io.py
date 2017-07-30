@@ -6,18 +6,20 @@ import pytest
 
 
 def test_json():
-    tmp_filename = '.cvbase_test.tmp.json'
     test_obj = [{'a': 'abc', 'b': 1}, 2, 'c']
+    # json dump as a string
     json_str = cvb.json_dump(test_obj)
     assert json_str in [
         '[{"a": "abc", "b": 1}, 2, "c"]', '[{"b": 1, "a": "abc"}, 2, "c"]'
     ]
+    # json load/dump with filename
+    tmp_filename = '.cvbase_test.tmp.json'
     cvb.json_dump(test_obj, tmp_filename)
     assert path.isfile(tmp_filename)
     load_obj = cvb.json_load(tmp_filename)
     assert load_obj == test_obj
     remove(tmp_filename)
-
+    # json load/dump with file-like object
     with open(tmp_filename, 'w') as f:
         cvb.json_dump(test_obj, f)
     assert path.isfile(tmp_filename)
@@ -28,18 +30,20 @@ def test_json():
 
 
 def test_yaml():
-    tmp_filename = '.cvbase_test.tmp.yaml'
     test_obj = [{'a': 'abc', 'b': 1}, 2, 'c']
+    # yaml dump as a string
     yaml_str = cvb.yaml_dump(test_obj)
     assert yaml_str in [
         '- {a: abc, b: 1}\n- 2\n- c\n', '- {b: 1, a: abc}\n- 2\n- c\n'
     ]
+    # yaml load/dump with filename
+    tmp_filename = '.cvbase_test.tmp.yaml'
     cvb.yaml_dump(test_obj, tmp_filename)
     assert path.isfile(tmp_filename)
     load_obj = cvb.yaml_load(tmp_filename)
     assert load_obj == test_obj
     remove(tmp_filename)
-
+    # yaml load/dump with file-like object
     with open(tmp_filename, 'w') as f:
         cvb.yaml_dump(test_obj, f)
     assert path.isfile(tmp_filename)
@@ -50,14 +54,19 @@ def test_yaml():
 
 
 def test_pickle():
-    tmp_filename = '.cvbase_test.tmp.pkl'
     test_obj = [{'a': 'abc', 'b': 1}, 2, 'c']
+    # pickle dump as a string
+    pickle_str = cvb.pickle_dump(test_obj)
+    import pickle
+    assert pickle.loads(pickle_str) == test_obj
+    # pickle load/dump with filename
+    tmp_filename = '.cvbase_test.tmp.pkl'
     cvb.pickle_dump(test_obj, tmp_filename)
     assert path.isfile(tmp_filename)
     load_obj = cvb.pickle_load(tmp_filename)
     assert load_obj == test_obj
     remove(tmp_filename)
-
+    # pickle load/dump with file-like object
     with open(tmp_filename, 'wb') as f:
         cvb.pickle_dump(test_obj, f)
     assert path.isfile(tmp_filename)
@@ -65,6 +74,37 @@ def test_pickle():
         load_obj = cvb.pickle_load(f)
     assert load_obj == test_obj
     remove(tmp_filename)
+
+
+def test_universal():
+    test_obj = [{'a': 'abc', 'b': 1}, 2, 'c']
+    # dump as a string
+    for format in ['json', 'yaml', 'pickle']:
+        cvb.dump(test_obj, format=format)
+    with pytest.raises(ValueError):
+        cvb.dump(test_obj)
+    with pytest.raises(TypeError):
+        cvb.dump(test_obj, 'tmp.txt')
+    # test load/dump with filename
+    for format in ['json', 'yaml', 'pkl']:
+        tmp_filename = '.cvbase_test.tmp.' + format
+        cvb.dump(test_obj, tmp_filename)
+        assert path.isfile(tmp_filename)
+        load_obj = cvb.load(tmp_filename)
+        assert load_obj == test_obj
+        remove(tmp_filename)
+    # test json load/dump with file object
+    for format in ['json', 'yaml', 'pkl']:
+        tmp_filename = '.cvbase_test.tmp.' + format
+        mode = 'wb' if format == 'pkl' else 'w'
+        with open(tmp_filename, mode) as f:
+            cvb.dump(test_obj, f, format=format)
+        assert path.isfile(tmp_filename)
+        mode = 'rb' if format == 'pkl' else 'r'
+        with open(tmp_filename, mode) as f:
+            load_obj = cvb.load(f, format=format)
+        assert load_obj == test_obj
+        remove(tmp_filename)
 
 
 def test_list_from_file():

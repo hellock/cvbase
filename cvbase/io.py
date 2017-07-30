@@ -73,15 +73,50 @@ def pickle_load(file, **kwargs):
     return obj
 
 
-def pickle_dump(obj, file, **kwargs):
+def pickle_dump(obj, file=None, **kwargs):
     kwargs.setdefault('protocol', 2)
-    if isinstance(file, str):
+    if file is None:
+        return pickle.dumps(obj, **kwargs)
+    elif isinstance(file, str):
         with open(file, 'wb') as f:
             pickle.dump(obj, f, **kwargs)
     elif hasattr(file, 'write'):
         pickle.dump(obj, file, **kwargs)
     else:
         raise TypeError('"file" must be a filename str or a file-object')
+
+
+def load(file, format=None, **kwargs):
+    processors = {
+        'json': json_load,
+        'yaml': yaml_load,
+        'yml': yaml_load,
+        'pickle': pickle_load,
+        'pkl': pickle_load
+    }
+    if format is None and isinstance(file, str):
+        format = file.split('.')[-1]
+    if format not in processors:
+        raise TypeError('Unsupported format: ' + format)
+    return processors[format](file, **kwargs)
+
+
+def dump(obj, file=None, format=None, **kwargs):
+    processors = {
+        'json': json_dump,
+        'yaml': yaml_dump,
+        'yml': yaml_dump,
+        'pickle': pickle_dump,
+        'pkl': pickle_dump
+    }
+    if format is None:
+        if isinstance(file, str):
+            format = file.split('.')[-1]
+        elif file is None:
+            raise ValueError('format must be specified')
+    if format not in processors:
+        raise TypeError('Unsupported format: ' + format)
+    return processors[format](obj, file, **kwargs)
 
 
 def list_from_file(filename, prefix='', offset=0, max_num=0):

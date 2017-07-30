@@ -9,7 +9,8 @@ def bbox_transform(proposals, gt):
     Args:
         proposals(ndarray): shape (..., 4)
         gt(ndarray): shape (..., 4) or (1.., 4)
-    Output:
+
+    Returns:
         ndarray: same shape as proposals
     """
     assert proposals.ndim == gt.ndim
@@ -49,7 +50,8 @@ def bbox_transform_inv(bboxes, deltas):
     Args:
         bboxes(ndarray): shape (..., 4) [x1, y1, x2, y2]
         deltas(ndarray): shape (..., 4*k) [dx, dy, dw, dh]
-    Output:
+
+    Returns:
         ndarray: same shape as input deltas
     """
 
@@ -110,7 +112,8 @@ def bbox_normalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
         deltas(ndarray): shape(..., 4*k)
         means(ndarray or list): shape(4, ) or (4*k, )
         stds(ndarray or list): shape(4, ) or (4*k, )
-    Output:
+
+    Returns:
         ndarray: normalized deltas, same shape as input deltas
     """
     if isinstance(means, list):
@@ -136,7 +139,8 @@ def bbox_denormalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
         deltas(ndarray): shape(..., 4*k)
         means(ndarray or list): shape(4, ) or (4*k, )
         stds(ndarray or list): shape(4, ) or (4*k, )
-    Output:
+
+    Returns:
         ndarray: denormalized deltas, same shape as input deltas
     """
     if isinstance(means, list):

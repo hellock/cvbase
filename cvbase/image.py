@@ -10,7 +10,8 @@ def read_img(img_or_path, flag=IMREAD_COLOR):
 
     Args:
         img_or_path(ndarray or str): either an image or path of an image
-    Output:
+
+    Returns:
         ndarray: image array
     """
     if isinstance(img_or_path, np.ndarray):
@@ -47,7 +48,8 @@ def resize(img, size, return_scale=False, interpolation=INTER_LINEAR):
         size(tuple): (w, h)
         return_scale(bool): whether to return w_scale and h_scale
         interpolation(enum): interpolation method
-    Output:
+
+    Returns:
         ndarray: resized image
     """
     img = read_img(img)
@@ -69,7 +71,8 @@ def resize_like(img, dst_img, return_scale=False, interpolation=INTER_LINEAR):
         dst_img(ndarray): the given image with expected size
         return_scale(bool): whether to return w_scale and h_scale
         interpolation(enum): interpolation method
-    Output:
+
+    Returns:
         ndarray: resized image
     """
     h, w = dst_img.shape[:2]
@@ -83,7 +86,8 @@ def resize_by_ratio(img, ratio, interpolation=INTER_LINEAR):
         img(ndarray): image or image path
         ratio(float): scale factor
         interpolation(enum): interpolation method
-    Output:
+
+    Returns:
         ndarray: resized image
     """
     assert isinstance(ratio, (float, int)) and ratio > 0
@@ -108,7 +112,8 @@ def resize_keep_ar(img,
         max_short_edge(int): max value of the short edge of resized image
         return_scale(bool): whether to return scale besides the resized image
         interpolation(enum): interpolation method
-    Output:
+
+    Returns:
         tuple: (resized image, scale factor)
     """
     if max_long_edge < max_short_edge:
@@ -135,7 +140,8 @@ def limit_size(img, max_edge, return_scale=False, interpolation=INTER_LINEAR):
         max_edge(int): max value of long edge
         return_scale(bool): whether to return scale besides the resized image
         interpolation(enum): interpolation method
-    Output:
+
+    Returns:
         tuple: (resized image, scale factor)
     """
     img = read_img(img)

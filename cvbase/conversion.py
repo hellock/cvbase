@@ -23,7 +23,8 @@ def slice_list(in_list, lens):
     Args:
         in_list(list): the list to be sliced
         lens(int or list): the expected length of each out list
-    Output:
+
+    Returns:
         list: list of sliced list
     """
     if not isinstance(lens, list):

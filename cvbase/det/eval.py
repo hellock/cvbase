@@ -10,7 +10,8 @@ def bbox_overlaps(bboxes1, bboxes2):
     Args:
         bboxes1(ndarray): shape (n, 4)
         bboxes2(ndarray): shape (k, 4)
-    Output:
+
+    Returns:
         ious(ndarray): shape (n, k)
     """
     bboxes1 = bboxes1.astype(np.float32)
@@ -246,7 +247,8 @@ def _tpfp_imagenet(det_bbox, gt_bboxes, gt_covered, default_iou_thr):
         gt_bboxes(ndarray): ground truth bboxes of this image
         gt_covered(ndarray): indicate if gts are matched
         default_iou_thr(float): the iou thresholds for medium and large bboxes
-    Output:
+
+    Returns:
         tuple: (tp, fp), either 0 or 1
     """
     bbox_max_iou = -1
@@ -278,7 +280,8 @@ def _tpfp_default(det_bbox, gt_bboxes, gt_covered, iou_thr, gt_difficults):
         gt_covered(ndarray): indicate if gts are matched
         iou_thr(float): the iou thresholds
         gt_difficults(ndarray): indicate if gts are difficult or not
-    Output:
+
+    Returns:
         tuple: (tp, fp), either 0 or 1
     """
     ious = bbox_overlaps(det_bbox[np.newaxis, :], gt_bboxes)
@@ -311,7 +314,8 @@ def eval_map(det_results,
         print_summary(bool): whether to print the mAP summary
         dataset(str): dataset name, there are minor differences in metrics
                       for different datsets, e.g. "voc07", "voc12", "imagenet"
-    Output:
+
+    Returns:
         tuple: (mAP, [dict, dict, ...])
     """
     eval_results = []

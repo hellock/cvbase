@@ -21,3 +21,6 @@ build/
 
 # Test cache
 .cache/
+
+# doc build
+docs/_build/

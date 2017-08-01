@@ -11,29 +11,8 @@ Welcome to cvbase's documentation!
 
    intro.md
    io.md
-
-
-API
-====
-.. automodule:: cvbase.io
-    :members:
-    :show-inheritance:
-
-.. automodule:: cvbase.conversion
-    :members:
-    :show-inheritance:
-
-.. automodule:: cvbase.image
-    :members:
-    :show-inheritance:
-
-.. automodule:: cvbase.timer
-    :members:
-    :show-inheritance:
-
-.. automodule:: cvbase.det
-    :members:
-    :show-inheritance:
+   image.md
+   api.rst
 
 
 
@@ -41,5 +20,4 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

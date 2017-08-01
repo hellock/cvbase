@@ -7,82 +7,84 @@ It comprises the following parts.
 There are some popular features such as progress visualization, timer, video to frames/frames to videos.
 
 
-### Progress visualization
+- Progress visualization
 
-If you want to apply a method to a list of items and track the progress, `track_progress`
-is a good choice. It will display a progress bar to tell the progress and ETA.
+    If you want to apply a method to a list of items and track the progress, `track_progress`
+    is a good choice. It will display a progress bar to tell the progress and ETA.
 
-```python
-import cvbase as cvb
+    ```python
+    import cvbase as cvb
 
-def func(item):
-    # do something
-    pass
+    def func(item):
+        # do something
+        pass
 
-tasks = [item_1, item_2, ..., item_n]
+    tasks = [item_1, item_2, ..., item_n]
 
-cvb.track_progress(func, tasks)
-```
+    cvb.track_progress(func, tasks)
+    ```
 
-The output is like the following.
-![progress](_static/progress.gif)
+    The output is like the following.
+    ![progress](_static/progress.gif)
 
-There is another method `track_parallel_progress`, which wraps multiprocessing and
-progress visualization.
+    There is another method `track_parallel_progress`, which wraps multiprocessing and
+    progress visualization.
 
-```python
-import cvbase as cvb
+    ```python
+    import cvbase as cvb
 
-def func(item):
-    # do something
-    pass
+    def func(item):
+        # do something
+        pass
 
-tasks = [item_1, item_2, ..., item_n]
+    tasks = [item_1, item_2, ..., item_n]
 
-cvb.track_progress(func, tasks, 8)
-# 8 workers
-```
+    cvb.track_progress(func, tasks, 8)
+    # 8 workers
+    ```
 
-### Timer
-It is convinient to computer the runtime of a code block with `Timer`.
+- Timer
 
-```python
-import time
-import cvbase as cvb
+    It is convinient to computer the runtime of a code block with `Timer`.
 
-with cvb.Timer():
-    # there can be any code block
-    time.sleep(1)
-```
+    ```python
+    import time
+    import cvbase as cvb
 
-Or try a more flexible way.
+    with cvb.Timer():
+        # there can be any code block
+        time.sleep(1)
+    ```
 
-```python
-import cvbase as cvb
+    Or try a more flexible way.
 
-timer = cvb.Timer()
-# code block 1 here
-print(timer.since_start())
-# code block 2 here
-print(timer.since_last_check())
-print(timer.since_start())
-```
+    ```python
+    import cvbase as cvb
 
-### Video/Frames conversion
-To split a video into frames.
+    timer = cvb.Timer()
+    # code block 1 here
+    print(timer.since_start())
+    # code block 2 here
+    print(timer.since_last_check())
+    print(timer.since_start())
+    ```
 
-```python
-import cvbase as cvb
+- Video/Frames conversion
 
-video = cvb.VideoReader('video_file.mp4')
-video.cvt2frames('frame_dir')
-```
-Besides `cvt2frames`, `VideoReader` wraps many other useful methods to operate a video.
+    To split a video into frames.
 
-To generate a video from frames, use the `frames2video` method.
+    ```python
+    import cvbase as cvb
 
-```python
-import cvbase as cvb
+    video = cvb.VideoReader('video_file.mp4')
+    video.cvt2frames('frame_dir')
+    ```
+    Besides `cvt2frames`, `VideoReader` wraps many other useful methods to operate a video.
 
-video = cvb.VideoReader('frame_dir', 'out_video_file.avi', fps=30)
-```
+    To generate a video from frames, use the `frames2video` method.
+
+    ```python
+    import cvbase as cvb
+
+    video = cvb.VideoReader('frame_dir', 'out_video_file.avi', fps=30)
+    ```

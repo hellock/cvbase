@@ -60,3 +60,14 @@ or `IOError` will be thrown out.
 Use `mkdir_or_exist` to check if a directory exists, the directory will be created if not exists.
 
 Use `scandir` to scan a directory for all files or files will certain suffix.
+
+```python
+import cvbase as cvb
+
+# scan the folder "test" for all files 
+for filename in cvb.scandir('test'):
+    print(filename)
+# scan the folder "test" for all jpg files 
+for filename in cvb.scandir('test', '.jpg'):
+    print(filename)
+```

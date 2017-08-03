@@ -19,4 +19,5 @@ cvbase
 ``cvbase`` is a miscellaneous set of tools which maybe helpful for computer vision research.
 It comprises the following parts.
 
-The .. _documentation: http://cvbase.readthedocs.io/en/latest/ is on going.
+The `documentation 
+<http://cvbase.readthedocs.io/en/latest>`_  is on going.

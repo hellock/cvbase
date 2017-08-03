@@ -12,6 +12,7 @@ Welcome to cvbase's documentation!
    intro.md
    io.md
    image.md
+   video.md
    api.rst
 
 

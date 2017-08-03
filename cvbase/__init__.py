@@ -11,3 +11,5 @@ try:
     from .visualize import *
 except ImportError:
     pass
+
+__version__ = '0.2.4'

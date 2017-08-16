@@ -52,6 +52,26 @@ cvb.list_from_file('a.txt', prefix='/mnt/')
 # output ['/mnt/a', '/mnt/b', '/mnt/c', '/mnt/d', '/mnt/e']
 ```
 
+### Load dict from a text file
+
+For example a.txt is a text file with 5 lines.
+```
+1 cat
+2 dog cow
+3 panda
+```
+
+Then use `dict_from_file` to load the list from a.txt.
+
+```python
+import cvbase as cvb
+
+cvb.dict_from_file('a.txt')
+# output {'1': 'cat', '2': ['dog', 'cow'], '3': 'panda'}
+cvb.dict_from_file('a.txt', key_type=int)
+# output {1: 'cat', 2: ['dog', 'cow'], 3: 'panda'}
+```
+
 ### File/Directory operations
 
 Use `check_file_exist` to check if a file exists, if not, a `FileNotFoundError`

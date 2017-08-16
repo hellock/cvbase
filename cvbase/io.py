@@ -133,6 +133,18 @@ def list_from_file(filename, prefix='', offset=0, max_num=0):
     return item_list
 
 
+def dict_from_file(filename, key_type=str):
+    mapping = {}
+    with open(filename, 'r') as f:
+        for line in f:
+            items = line.rstrip('\n').split(' ')
+            assert len(items) >= 2
+            key = key_type(items[0])
+            val = items[1:] if len(items) > 2 else items[1]
+            mapping[key] = val
+    return mapping
+
+
 class AsyncDumper(Process):
 
     def __init__(self):

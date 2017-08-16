@@ -121,6 +121,14 @@ def test_list_from_file():
     assert filelist == ['4.jpg', '5.jpg']
 
 
+def test_dict_from_file():
+    filename = path.join(path.dirname(__file__), 'data/kv_pair.txt')
+    mapping = cvb.dict_from_file(filename)
+    assert mapping == {'1': 'cat', '2': ['dog', 'cow'], '3': 'panda'}
+    mapping = cvb.dict_from_file(filename, key_type=int)
+    assert mapping == {1: 'cat', 2: ['dog', 'cow'], 3: 'panda'}
+
+
 def test_async_dumper():
     tmp_dir = '.cvbase_test.tmp'
     makedirs(tmp_dir)
@@ -151,12 +159,14 @@ def test_check_file_exist():
 def test_scandir():
     folder = path.join(path.dirname(__file__), 'data')
     assert set(cvb.scandir(folder)) == set([
-        'filelist.txt', 'voc_labels.txt', 'color.jpg', 'grayscale.jpg',
-        'test.mp4'
+        'filelist.txt', 'kv_pair.txt', 'voc_labels.txt', 'color.jpg',
+        'grayscale.jpg', 'test.mp4'
     ])
     assert set(cvb.scandir(folder, '.txt')) == set(
-        ['filelist.txt', 'voc_labels.txt'])
-    assert set(cvb.scandir(folder, ('.jpg', '.txt'))) == set(
-        ['filelist.txt', 'voc_labels.txt', 'color.jpg', 'grayscale.jpg'])
+        ['filelist.txt', 'kv_pair.txt', 'voc_labels.txt'])
+    assert set(cvb.scandir(folder, ('.jpg', '.txt'))) == set([
+        'filelist.txt', 'kv_pair.txt', 'voc_labels.txt', 'color.jpg',
+        'grayscale.jpg'
+    ])
     with pytest.raises(TypeError):
         cvb.scandir(folder, 111)

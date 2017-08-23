@@ -204,6 +204,19 @@ class TestBboxTransform(object):
         assert_array_almost_equal(
             cvb.bbox_denormalize(norm_deltas5, means, stds), deltas5)
 
+    def test_bbox_scaling(self):
+        bboxes = np.array([[100, 100, 599, 799], [0, 0, 99, 99]])
+        scaled1 = cvb.bbox_scaling(bboxes, 1.8)
+        gt1 = np.array([[-100, -180, 799, 1079], [-40, -40, 139, 139]])
+        assert_array_equal(scaled1, gt1)
+        scaled2 = cvb.bbox_scaling(bboxes, 1.8, clip_shape=(600, 1000))
+        gt2 = np.array([[0, 0, 799, 599], [0, 0, 139, 139]])
+        assert_array_equal(scaled2, gt2)
+        bboxes_3d = np.stack((bboxes, bboxes), axis=0)
+        gt_3d = np.stack((gt2, gt2), axis=0)
+        scaled_3d = cvb.bbox_scaling(bboxes_3d, 1.8, clip_shape=(600, 1000))
+        assert_array_equal(scaled_3d, gt_3d)
+
 
 class TestEval(object):
 

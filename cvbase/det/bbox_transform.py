@@ -54,7 +54,6 @@ def bbox_transform_inv(bboxes, deltas):
     Returns:
         ndarray: same shape as input deltas
     """
-
     px = (bboxes[..., 0] + bboxes[..., 2]) * 0.5
     py = (bboxes[..., 1] + bboxes[..., 3]) * 0.5
     pw = bboxes[..., 2] - bboxes[..., 0] + 1.0
@@ -79,15 +78,16 @@ def bbox_clip(bboxes, img_shape):
         img_shape(tuple): (height, width)
     """
     assert bboxes.shape[-1] % 4 == 0
-    bboxes[..., 0::4] = np.maximum(
+    cliped_bboxes = np.empty_like(bboxes, dtype=bboxes.dtype)
+    cliped_bboxes[..., 0::4] = np.maximum(
         np.minimum(bboxes[..., 0::4], img_shape[1] - 1), 0)
-    bboxes[..., 1::4] = np.maximum(
+    cliped_bboxes[..., 1::4] = np.maximum(
         np.minimum(bboxes[..., 1::4], img_shape[0] - 1), 0)
-    bboxes[..., 2::4] = np.maximum(
+    cliped_bboxes[..., 2::4] = np.maximum(
         np.minimum(bboxes[..., 2::4], img_shape[1] - 1), 0)
-    bboxes[..., 3::4] = np.maximum(
+    cliped_bboxes[..., 3::4] = np.maximum(
         np.minimum(bboxes[..., 3::4], img_shape[0] - 1), 0)
-    return bboxes
+    return cliped_bboxes
 
 
 def bbox_flip(bboxes, img_shape):
@@ -157,3 +157,25 @@ def bbox_denormalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
         means = np.tile(means, tuple(reps))
         stds = np.tile(stds, tuple(reps))
     return deltas * stds + means
+
+
+def bbox_scaling(bboxes, scale, clip_shape=None):
+    """Scaling bboxes and clip the boundary(optional)
+
+    Args:
+        bboxes(ndarray): shape(..., 4)
+        scale(float): scaling factor
+        clip(None or tuple): (h, w)
+
+    Returns:
+        ndarray: scaled bboxes
+    """
+    w = bboxes[..., 2] - bboxes[..., 0] + 1
+    h = bboxes[..., 3] - bboxes[..., 1] + 1
+    dw = (w * (scale - 1)) * 0.5
+    dh = (h * (scale - 1)) * 0.5
+    scaled_bboxes = bboxes + np.stack((-dw, -dh, dw, dh), axis=-1)
+    if clip_shape is not None:
+        return bbox_clip(scaled_bboxes, clip_shape)
+    else:
+        return scaled_bboxes

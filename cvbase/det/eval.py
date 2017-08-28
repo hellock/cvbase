@@ -55,6 +55,9 @@ def _recalls(all_ious, proposal_nums, thrs):
         for i in range(img_num):
             ious = all_ious[i][:, :proposal_num].copy()
             gt_ious = np.zeros((ious.shape[0]))
+            if ious.size == 0:
+                tmp_ious = np.hstack((tmp_ious, gt_ious))
+                continue
             for j in range(ious.shape[0]):
                 gt_max_overlaps = ious.argmax(axis=1)
                 max_ious = ious[np.arange(0, ious.shape[0]), gt_max_overlaps]
@@ -114,19 +117,19 @@ def bbox_recalls(gts,
 
     proposal_nums, iou_thrs = set_recall_param(proposal_nums, iou_thrs)
 
+    all_ious = []
     for i in range(img_num):
         if proposals[i].ndim == 2 and proposals[i].shape[1] == 5:
             scores = proposals[i][:, 4]
             sort_idx = np.argsort(scores)[::-1]
-            proposals[i] = proposals[i][sort_idx, :]
-
-    all_ious = []
-    for i in range(img_num):
-        prop_num = min(proposals[i].shape[0], proposal_nums[-1])
-        if gts[i] is None or gts[i].shape[0] == 0:
-            ious = np.zeros((0, proposals[i].shape[0]), dtype=np.float32)
+            img_proposal = proposals[i][sort_idx, :]
         else:
-            ious = bbox_overlaps(gts[i], proposals[i][:prop_num, :4])
+            img_proposal = proposals[i]
+        prop_num = min(img_proposal.shape[0], proposal_nums[-1])
+        if gts[i] is None or gts[i].shape[0] == 0:
+            ious = np.zeros((0, img_proposal.shape[0]), dtype=np.float32)
+        else:
+            ious = bbox_overlaps(gts[i], img_proposal[:prop_num, :4])
         all_ious.append(ious)
     all_ious = np.array(all_ious)
     recalls = _recalls(all_ious, proposal_nums, iou_thrs)

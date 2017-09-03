@@ -170,11 +170,14 @@ def bbox_scaling(bboxes, scale, clip_shape=None):
     Returns:
         ndarray: scaled bboxes
     """
-    w = bboxes[..., 2] - bboxes[..., 0] + 1
-    h = bboxes[..., 3] - bboxes[..., 1] + 1
-    dw = (w * (scale - 1)) * 0.5
-    dh = (h * (scale - 1)) * 0.5
-    scaled_bboxes = bboxes + np.stack((-dw, -dh, dw, dh), axis=-1)
+    if float(scale) == 1.0:
+        scaled_bboxes = bboxes.copy()
+    else:
+        w = bboxes[..., 2] - bboxes[..., 0] + 1
+        h = bboxes[..., 3] - bboxes[..., 1] + 1
+        dw = (w * (scale - 1)) * 0.5
+        dh = (h * (scale - 1)) * 0.5
+        scaled_bboxes = bboxes + np.stack((-dw, -dh, dw, dh), axis=-1)
     if clip_shape is not None:
         return bbox_clip(scaled_bboxes, clip_shape)
     else:

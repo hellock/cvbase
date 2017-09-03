@@ -1,7 +1,10 @@
+from os import path
+
 import cv2
 import numpy as np
 
-from cvbase.io import check_file_exist
+from cvbase.det import bbox_clip, bbox_scaling
+from cvbase.io import check_file_exist, mkdir_or_exist
 from cvbase.opencv import IMREAD_COLOR, INTER_LINEAR
 
 
@@ -31,7 +34,10 @@ def img_from_bytes(content, flag=IMREAD_COLOR):
     return img
 
 
-def write_img(img, file_path, params=None):
+def write_img(img, file_path, params=None, auto_mkdir=True):
+    if auto_mkdir:
+        dir_name = path.abspath(path.dirname(file_path))
+        mkdir_or_exist(dir_name)
     return cv2.imwrite(file_path, img, params)
 
 
@@ -157,3 +163,40 @@ def limit_size(img, max_edge, return_scale=False, interpolation=INTER_LINEAR):
         return resized_img, scale
     else:
         return resized_img
+
+
+def crop_img(img, bboxes, scale_ratio=1.0, pad_fill=None):
+    """Crop image patches"""
+    chn = 1 if img.ndim == 2 else img.shape[2]
+    if pad_fill is not None:
+        assert len(pad_fill) == chn
+    img = read_img(img)
+    _bboxes = bboxes[np.newaxis, ...] if bboxes.ndim == 1 else bboxes
+    scaled_bboxes = bbox_scaling(_bboxes, scale_ratio)
+    scaled_bboxes = scaled_bboxes.astype(np.int32)
+    clipped_bbox = bbox_clip(scaled_bboxes, img.shape)
+    patches = []
+    for i in range(clipped_bbox.shape[0]):
+        x1, y1, x2, y2 = tuple(clipped_bbox[i, :].tolist())
+        if pad_fill is None:
+            patch = img[y1:y2 + 1, x1:x2 + 1, ...]
+        else:
+            _x1, _y1, _x2, _y2 = tuple(scaled_bboxes[i, :].tolist())
+            if chn == 2:
+                patch_shape = (_y2 - _y1 + 1, _x2 - _x1 + 1)
+            else:
+                patch_shape = (_y2 - _y1 + 1, _x2 - _x1 + 1, chn)
+            patch = np.array(
+                pad_fill, dtype=img.dtype) * np.ones(
+                    patch_shape, dtype=img.dtype)
+            x_start = 0 if _x1 >= 0 else -_x1
+            y_start = 0 if _y1 >= 0 else -_y1
+            w = x2 - x1 + 1
+            h = y2 - y1 + 1
+            patch[y_start:y_start + h, x_start:x_start + w, ...] = img[
+                y1:y1 + h, x1:x1 + w, ...]
+        patches.append(patch)
+    if bboxes.ndim == 1:
+        return patches[0]
+    else:
+        return patches

@@ -4,6 +4,7 @@ from os import path
 import cvbase as cvb
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 
 class TestImage(object):
@@ -25,7 +26,7 @@ class TestImage(object):
         img = cvb.read_img(self.gray_img_path, cvb.IMREAD_UNCHANGED)
         assert img.shape == (300, 400)
         img = cvb.read_img(img)
-        np.testing.assert_array_equal(img, cvb.read_img(img))
+        assert_array_equal(img, cvb.read_img(img))
         with pytest.raises(TypeError):
             cvb.read_img(1)
 
@@ -105,3 +106,42 @@ class TestImage(object):
         assert resized_img.shape == (150, 200, 3)
         resized_img, scale = cvb.limit_size(img, 200, True)
         assert resized_img.shape == (150, 200, 3) and scale == 0.5
+
+    def test_crop_img(self):
+        img = cvb.read_img(self.img_path)
+        # yapf: disable
+        bboxes = np.array([[100, 100, 199, 199],  # center
+                           [0, 0, 150, 100],  # left-top corner
+                           [250, 200, 399, 299],  # right-bottom corner
+                           [0, 100, 399, 199],  # wide
+                           [150, 0, 299, 299]])  # tall
+        # yapf: enable
+        # crop one bbox
+        patch = cvb.crop_img(img, bboxes[0, :])
+        patches = cvb.crop_img(img, bboxes[[0], :])
+        assert patch.shape == (100, 100, 3)
+        patch_path = path.join(path.dirname(__file__), 'data/patches')
+        ref_patch = np.load(patch_path + '/0.npy')
+        assert_array_equal(patch, ref_patch)
+        assert isinstance(patches, list) and len(patches) == 1
+        assert_array_equal(patches[0], ref_patch)
+        # crop with no scaling and padding
+        patches = cvb.crop_img(img, bboxes)
+        assert len(patches) == bboxes.shape[0]
+        for i in range(len(patches)):
+            ref_patch = np.load(patch_path + '/{}.npy'.format(i))
+            assert_array_equal(patches[i], ref_patch)
+        # crop with scaling and no padding
+        patches = cvb.crop_img(img, bboxes, 1.2)
+        for i in range(len(patches)):
+            ref_patch = np.load(patch_path + '/scale_{}.npy'.format(i))
+            assert_array_equal(patches[i], ref_patch)
+        # crop with scaling and padding
+        patches = cvb.crop_img(img, bboxes, 1.2, pad_fill=[255, 255, 0])
+        for i in range(len(patches)):
+            ref_patch = np.load(patch_path + '/pad_{}.npy'.format(i))
+            assert_array_equal(patches[i], ref_patch)
+        patches = cvb.crop_img(img, bboxes, 1.2, pad_fill=0)
+        for i in range(len(patches)):
+            ref_patch = np.load(patch_path + '/pad0_{}.npy'.format(i))
+            assert_array_equal(patches[i], ref_patch)

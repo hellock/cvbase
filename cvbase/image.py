@@ -205,13 +205,15 @@ def crop_img(img, bboxes, scale_ratio=1.0, pad_fill=None):
         img(ndarray): image to be cropped
         bboxes(ndarray): shape (k, 4) or (4, ), location of cropped bboxes
         scale_ratio(float): scale ratio of bboxes, default by 1.0 (no scaling)
-        pad_fill(list): value to be filled for padding, None for no padding
+        pad_fill(number or list): value to be filled for padding, None for no padding
 
     Returns:
         list or ndarray: cropped image patches
     """
     chn = 1 if img.ndim == 2 else img.shape[2]
     if pad_fill is not None:
+        if isinstance(pad_fill, (int, float)):
+            pad_fill = [pad_fill for _ in range(chn)]
         assert len(pad_fill) == chn
     img = read_img(img)
     _bboxes = bboxes[np.newaxis, ...] if bboxes.ndim == 1 else bboxes

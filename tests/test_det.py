@@ -217,6 +217,30 @@ class TestBboxTransform(object):
         scaled_3d = cvb.bbox_scaling(bboxes_3d, 1.8, clip_shape=(600, 1000))
         assert_array_equal(scaled_3d, gt_3d)
 
+    def test_bbox_perturb(self):
+        bbox = np.array([100, 100, 199, 199])
+        num = 10
+        ratio = 0.2
+        p_bboxes = cvb.bbox_perturb(bbox, 0.2, num)
+        assert p_bboxes.shape == (num, 4)
+        for i in range(4):
+            assert np.all((p_bboxes[:, i] >= bbox[i] * (1 - ratio)) &
+                          (p_bboxes[:, i] < bbox[i] * (1 + ratio)))
+        p_bboxes = cvb.bbox_perturb(bbox, 0.2, num, clip_shape=(205, 205))
+        for i in range(4):
+            assert np.all((p_bboxes[:, i] >= bbox[i] * (1 - ratio)) &
+                          (p_bboxes[:, i] <= min(bbox[i] * (1 + ratio), 204)))
+        p_bboxes = cvb.bbox_perturb(bbox, 0.2, num, min_iou=0.7)
+        assert np.all(cvb.bbox_overlaps(bbox[np.newaxis], p_bboxes) >= 0.7)
+        p_bboxes = cvb.bbox_perturb(bbox, 0.2, num, max_iou=0.7)
+        assert np.all(cvb.bbox_overlaps(bbox[np.newaxis], p_bboxes) < 0.7)
+        p_bboxes = cvb.bbox_perturb(bbox, 0.2, num, min_iou=0.95, max_try=1)
+        assert p_bboxes.shape[0] < num
+        p_bboxes1 = cvb.bbox_perturb(bbox, 0.2, num, min_iou=0.9, max_try=2)
+        p_bboxes2 = cvb.bbox_perturb(bbox, 0.2, num, min_iou=0.9, max_try=200)
+        p_bboxes3 = cvb.bbox_perturb(bbox, 0.2, num, min_iou=0.9, max_try=200)
+        assert max(p_bboxes2.shape[0], p_bboxes3.shape[0]) > p_bboxes1.shape[0]
+
 
 class TestEval(object):
 

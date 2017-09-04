@@ -1,6 +1,46 @@
 import numpy as np
 
 
+def bbox_overlaps(bboxes1, bboxes2):
+    """calculate the ious between each bbox of bboxes1 and bboxes2
+
+    Args:
+        bboxes1(ndarray): shape (n, 4)
+        bboxes2(ndarray): shape (k, 4)
+
+    Returns:
+        ious(ndarray): shape (n, k)
+    """
+    bboxes1 = bboxes1.astype(np.float32)
+    bboxes2 = bboxes2.astype(np.float32)
+    rows = bboxes1.shape[0]
+    cols = bboxes2.shape[0]
+    ious = np.zeros((rows, cols), dtype=np.float32)
+    if rows * cols == 0:
+        return ious
+    exchange = False
+    if bboxes1.shape[0] > bboxes2.shape[0]:
+        bboxes1, bboxes2 = bboxes2, bboxes1
+        ious = np.zeros((cols, rows), dtype=np.float32)
+        exchange = True
+    area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (
+        bboxes1[:, 3] - bboxes1[:, 1] + 1)
+    area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
+        bboxes2[:, 3] - bboxes2[:, 1] + 1)
+    for i in range(bboxes1.shape[0]):
+        x_start = np.maximum(bboxes1[i, 0], bboxes2[:, 0])
+        y_start = np.maximum(bboxes1[i, 1], bboxes2[:, 1])
+        x_end = np.minimum(bboxes1[i, 2], bboxes2[:, 2])
+        y_end = np.minimum(bboxes1[i, 3], bboxes2[:, 3])
+        overlap = np.maximum(x_end - x_start + 1, 0) * np.maximum(
+            y_end - y_start + 1, 0)
+        union = area1[i] + area2 - overlap
+        ious[i, :] = overlap / union
+    if exchange:
+        ious = ious.T
+    return ious
+
+
 def bbox_transform(proposals, gt):
     """Calculate regression deltas from proposals and ground truths
 
@@ -182,3 +222,57 @@ def bbox_scaling(bboxes, scale, clip_shape=None):
         return bbox_clip(scaled_bboxes, clip_shape)
     else:
         return scaled_bboxes
+
+
+def bbox_perturb(bbox,
+                 offset_ratio,
+                 num,
+                 clip_shape=None,
+                 min_iou=None,
+                 max_iou=None,
+                 max_try=20):
+    """Perturb a bbox around it to generate more bboxes
+
+    Args:
+        bbox(ndarray): shape(4,)
+        offset_ratio(float): max offset ratio (w.r.t the bbox w and h)
+        num(int): number of bboxes to be generated
+        clip_shape(None or tuple): (h, w)
+        min_iou(float): minimum iou of perturbed bboxes with original bbox
+        max_iou(float): maximum iou of perturbed bboxes with original bbox
+
+    Returns:
+        ndarray: perturbed bboxes of shape (num, 4)
+    """
+    w = bbox[2] - bbox[0] + 1
+    h = bbox[3] - bbox[1] + 1
+    max_offset = np.array([w, h, w, h], dtype=np.float32) * offset_ratio
+    # generate more bboxes to satisfy the iou condition more easily
+    num_relaxed = num * 2 if min_iou or max_iou else num
+    p_bboxes = np.zeros((num_relaxed, 4), dtype=np.float32)
+    for i in range(4):
+        p_bboxes[:, i] = np.random.uniform(
+            bbox[i] - max_offset[i], bbox[i] + max_offset[i], num_relaxed)
+    if clip_shape:
+        p_bboxes = bbox_clip(p_bboxes, clip_shape)
+    inds_valid = (p_bboxes[:, 0] < p_bboxes[:, 2]) & (p_bboxes[:, 1] <
+                                                      p_bboxes[:, 3])
+    p_bboxes = p_bboxes[inds_valid, :]
+    if min_iou or max_iou:
+        min_iou = 0 if min_iou is None else min_iou
+        max_iou = 2 if max_iou is None else max_iou
+        ious = bbox_overlaps(bbox[np.newaxis, ...], p_bboxes)[0, :]
+        inds_keep = (ious >= min_iou) & (ious < max_iou)
+        p_bboxes = p_bboxes[inds_keep, ...]
+    if p_bboxes.shape[0] < num:
+        if max_try > 1:
+            extra_bboxes = bbox_perturb(bbox, offset_ratio,
+                                        num - p_bboxes.shape[0], clip_shape,
+                                        min_iou, max_iou, max_try - 1)
+            return np.vstack((p_bboxes, extra_bboxes))
+        else:
+            return p_bboxes
+    elif p_bboxes.shape[0] > num:
+        return p_bboxes[:num, :]
+    else:
+        return p_bboxes

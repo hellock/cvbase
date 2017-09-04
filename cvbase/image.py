@@ -166,7 +166,18 @@ def limit_size(img, max_edge, return_scale=False, interpolation=INTER_LINEAR):
 
 
 def crop_img(img, bboxes, scale_ratio=1.0, pad_fill=None):
-    """Crop image patches"""
+    """Crop image patches
+    3 steps: scale the bboxes -> clip bboxes -> crop and pad
+
+    Args:
+        img(ndarray): image to be cropped
+        bboxes(ndarray): shape (k, 4) or (4, ), location of cropped bboxes
+        scale_ratio(float): scale ratio of bboxes, default by 1.0 (no scaling)
+        pad_fill(list): value to be filled for padding, None for no padding
+
+    Returns:
+        list or ndarray: cropped image patches
+    """
     chn = 1 if img.ndim == 2 else img.shape[2]
     if pad_fill is not None:
         assert len(pad_fill) == chn

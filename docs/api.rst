@@ -20,6 +20,18 @@ API
     :members:
     :show-inheritance:
 
-.. automodule:: cvbase.det
+.. automodule:: cvbase.progress
+    :members:
+    :show-inheritance:
+
+.. automodule:: cvbase.visualize
+    :members:
+    :show-inheritance:
+
+.. automodule:: cvbase.det.bbox_ops
+    :members:
+    :show-inheritance:
+
+.. automodule:: cvbase.det.eval
     :members:
     :show-inheritance:

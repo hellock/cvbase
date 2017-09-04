@@ -24,7 +24,8 @@ def show_img(img, win_name='', wait_time=0):
 
 def draw_bboxes(img, bboxes, colors=Color.green, top_k=0, thickness=1,
                 show=True, win_name='', wait_time=0, out_file=None):  # yapf: disable
-    """Draw bboxes in image
+    """Draw bboxes on an image
+
     Args:
         img(str or ndarray): the image to be shown
         bboxes(list or ndarray): a list of ndarray of shape (k, 4)

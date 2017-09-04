@@ -2,7 +2,7 @@ import numpy as np
 
 
 def bbox_overlaps(bboxes1, bboxes2):
-    """calculate the ious between each bbox of bboxes1 and bboxes2
+    """Calculate the ious between each bbox of bboxes1 and bboxes2
 
     Args:
         bboxes1(ndarray): shape (n, 4)

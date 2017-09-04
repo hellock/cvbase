@@ -66,12 +66,16 @@ def bbox_recalls(gts,
                  proposal_nums=None,
                  iou_thrs=None,
                  print_summary=True):
-    """calculate recalls
+    """Calculate recalls
+
     Args:
         gts(list or ndarray): a list of arrays of shape (n, 4)
         proposals(list or ndarray): a list of arrays of shape (k, 4) or (k, 5)
         proposal_nums(int or list of int or ndarray): top N proposals
         thrs(float or list or ndarray): iou thresholds
+
+    Returns:
+        ndarray: recalls of different ious and proposal nums
     """
 
     img_num = len(gts)

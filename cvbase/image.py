@@ -28,13 +28,32 @@ def read_img(img_or_path, flag=IMREAD_COLOR):
 
 
 def img_from_bytes(content, flag=IMREAD_COLOR):
-    """Read an image from bytes"""
+    """Read an image from bytes
+
+    Args:
+        content(bytes): images bytes got from files or other streams
+
+    Returns:
+        ndarray: image array
+    """
     img_np = np.fromstring(content, np.uint8)
     img = cv2.imdecode(img_np, flag)
     return img
 
 
 def write_img(img, file_path, params=None, auto_mkdir=True):
+    """Write image to file
+
+    Args:
+        img(ndarray): image to be written to file
+        file_path(str): file path
+        params(None or list): same as opencv imwrite interface
+        auto_mkdir(bool): if the parrent folder of file_path does not exist,
+                          whether to create it automatically
+
+    Returns:
+        bool: successful or not
+    """
     if auto_mkdir:
         dir_name = path.abspath(path.dirname(file_path))
         mkdir_or_exist(dir_name)
@@ -42,6 +61,16 @@ def write_img(img, file_path, params=None, auto_mkdir=True):
 
 
 def scale_size(size, scale):
+    """Scale a size
+
+    Args:
+        size(tuple): w, h
+        scale(float): scaling factor
+
+    Returns:
+        tuple: scaled size
+
+    """
     w, h = size
     return int(w * float(scale) + 0.5), int(h * float(scale) + 0.5)
 
@@ -109,7 +138,8 @@ def resize_keep_ar(img,
                    return_scale=False,
                    interpolation=INTER_LINEAR):
     """Resize image with aspect ratio unchanged
-    the long edge of resized image is no greater than max_long_edge, the short
+
+    The long edge of resized image is no greater than max_long_edge, the short
     edge of resized image is no greater than max_short_edge.
 
     Args:
@@ -139,6 +169,7 @@ def resize_keep_ar(img,
 
 def limit_size(img, max_edge, return_scale=False, interpolation=INTER_LINEAR):
     """Limit the size of an image
+
     If the long edge of the image is greater than max_edge, resize the image
 
     Args:
@@ -167,6 +198,7 @@ def limit_size(img, max_edge, return_scale=False, interpolation=INTER_LINEAR):
 
 def crop_img(img, bboxes, scale_ratio=1.0, pad_fill=None):
     """Crop image patches
+
     3 steps: scale the bboxes -> clip bboxes -> crop and pad
 
     Args:

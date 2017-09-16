@@ -60,6 +60,97 @@ def write_img(img, file_path, params=None, auto_mkdir=True):
     return cv2.imwrite(file_path, img, params)
 
 
+def bgr2gray(img, keepdim=False):
+    """Convert a BGR image to grayscale image
+
+    Args:
+        img(ndarray or str): either an image or path of an image
+        keepdim(bool): if set to False(by default), return the gray image
+                       with 2 dims, otherwise 3 dims.
+
+    Returns:
+        ndarray: the grayscale image
+    """
+    in_img = read_img(img)
+    out_img = cv2.cvtColor(in_img, cv2.COLOR_BGR2GRAY)
+    if keepdim:
+        out_img = out_img[..., np.newaxis]
+    return out_img
+
+
+def gray2bgr(img):
+    """Convert a grayscale image to BGR image
+
+    Args:
+        img(ndarray or str): either an image or path of an image
+
+    Returns:
+        ndarray: the BGR image
+    """
+    in_img = read_img(img)
+    if in_img.ndim == 2:
+        out_img = cv2.cvtColor(in_img[..., np.newaxis], cv2.COLOR_GRAY2BGR)
+    else:
+        out_img = cv2.cvtColor(in_img, cv2.COLOR_GRAY2BGR)
+    return out_img
+
+
+def bgr2rgb(img):
+    """Convert a BGR image to RGB image
+
+    Args:
+        img(ndarray or str): either an image or path of an image
+
+    Returns:
+        ndarray: the RGB image
+    """
+    in_img = read_img(img)
+    out_img = cv2.cvtColor(in_img, cv2.COLOR_BGR2RGB)
+    return out_img
+
+
+def rgb2bgr(img):
+    """Convert a RGB image to BGR image
+
+    Args:
+        img(ndarray or str): either an image or path of an image
+
+    Returns:
+        ndarray: the BGR image
+    """
+    in_img = read_img(img)
+    out_img = cv2.cvtColor(in_img, cv2.COLOR_RGB2BGR)
+    return out_img
+
+
+def bgr2hsv(img):
+    """Convert a BGR image to HSV image
+
+    Args:
+        img(ndarray or str): either an image or path of an image
+
+    Returns:
+        ndarray: the HSV image
+    """
+    in_img = read_img(img)
+    out_img = cv2.cvtColor(in_img, cv2.COLOR_BGR2HSV)
+    return out_img
+
+
+def hsv2bgr(img):
+    """Convert a HSV image to BGR image
+
+    Args:
+        img(ndarray or str): either an image or path of an image
+
+    Returns:
+        ndarray: the BGR image
+    """
+    in_img = read_img(img)
+    out_img = cv2.cvtColor(in_img, cv2.COLOR_HSV2BGR)
+    return out_img
+
+
 def scale_size(size, scale):
     """Scale a size
 

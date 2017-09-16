@@ -1,6 +1,8 @@
 import sys
 from setuptools import find_packages, setup
 
+from cvbase import __version__
+
 
 def readme():
     with open('README.rst') as f:
@@ -15,7 +17,7 @@ if sys.version_info < (3, 4):
 
 setup(
     name='cvbase',
-    version='0.2.7',
+    version=__version__,
     description='Utils for computer vision research',
     long_description=readme(),
     keywords='computer vision',

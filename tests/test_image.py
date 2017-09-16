@@ -4,7 +4,7 @@ from os import path
 import cvbase as cvb
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 
 class TestImage(object):
@@ -42,6 +42,62 @@ class TestImage(object):
         cvb.write_img(img, out_file)
         assert cvb.read_img(out_file).shape == (300, 400, 3)
         os.remove(out_file)
+
+    def test_bgr2gray(self):
+        in_img = np.random.rand(10, 10, 3).astype(np.float32)
+        out_img = cvb.bgr2gray(in_img)
+        computed_gray = (in_img[:, :, 0] * 0.114 + in_img[:, :, 1] * 0.587 +
+                         in_img[:, :, 2] * 0.299)
+        assert_array_almost_equal(out_img, computed_gray, decimal=4)
+        out_img_3d = cvb.bgr2gray(in_img, True)
+        assert out_img_3d.shape == (10, 10, 1)
+        assert_array_almost_equal(out_img_3d[..., 0], out_img, decimal=4)
+
+    def test_gray2bgr(self):
+        in_img = np.random.rand(10, 10).astype(np.float32)
+        out_img = cvb.gray2bgr(in_img)
+        assert out_img.shape == (10, 10, 3)
+        for i in range(3):
+            assert_array_almost_equal(out_img[..., i], in_img, decimal=4)
+
+    def test_bgr2rgb(self):
+        in_img = np.random.rand(10, 10, 3).astype(np.float32)
+        out_img = cvb.bgr2rgb(in_img)
+        assert out_img.shape == in_img.shape
+        assert_array_equal(out_img[..., 0], in_img[..., 2])
+        assert_array_equal(out_img[..., 1], in_img[..., 1])
+        assert_array_equal(out_img[..., 2], in_img[..., 0])
+
+    def test_rgb2bgr(self):
+        in_img = np.random.rand(10, 10, 3).astype(np.float32)
+        out_img = cvb.rgb2bgr(in_img)
+        assert out_img.shape == in_img.shape
+        assert_array_equal(out_img[..., 0], in_img[..., 2])
+        assert_array_equal(out_img[..., 1], in_img[..., 1])
+        assert_array_equal(out_img[..., 2], in_img[..., 0])
+
+    def test_bgr2hsv(self):
+        in_img = np.random.rand(10, 10, 3).astype(np.float32)
+        out_img = cvb.bgr2hsv(in_img)
+        argmax = in_img.argmax(axis=2)
+        computed_hsv = np.empty_like(in_img, dtype=in_img.dtype)
+        for i in range(in_img.shape[0]):
+            for j in range(in_img.shape[1]):
+                b = in_img[i, j, 0]
+                g = in_img[i, j, 1]
+                r = in_img[i, j, 2]
+                v = max(r, g, b)
+                s = (v - min(r, g, b)) / v if v != 0 else 0
+                if argmax[i, j] == 0:
+                    h = 240 + 60 * (r - g) / (v - min(r, g, b))
+                elif argmax[i, j] == 1:
+                    h = 120 + 60 * (b - r) / (v - min(r, g, b))
+                else:
+                    h = 60 * (g - b) / (v - min(r, g, b))
+                if h < 0:
+                    h += 360
+                computed_hsv[i, j, :] = [h, s, v]
+        assert_array_almost_equal(out_img, computed_hsv, decimal=4)
 
     def test_scale_size(self):
         assert cvb.scale_size((300, 200), 0.5) == (150, 100)

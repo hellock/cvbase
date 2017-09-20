@@ -41,108 +41,27 @@ def bbox_overlaps(bboxes1, bboxes2):
     return ious
 
 
-def bbox_transform(proposals, gt):
-    """Calculate regression deltas from proposals and ground truths
-
-    dx = (gx - px) / pw, dw = log(gw / pw)
+def bbox2roi(bbox_list, stack=True):
+    """Convert bboxes to rois by adding index at the first col.
 
     Args:
-        proposals(ndarray): shape (..., 4)
-        gt(ndarray): shape (..., 4) or (1.., 4)
+        bbox_list(list): a list of ndarray (k_i, 4)
+        stack(bool): whether to stack all the rois
 
     Returns:
-        ndarray: same shape as proposals
+        ndarray or list: rois of shape (sum_k, 4)
     """
-    assert proposals.ndim == gt.ndim
-    if gt.shape[0] == 1:
-        shape = [1 for _ in range(proposals.ndim)]
-        shape[0] = proposals.shape[0]
-        gt = np.tile(gt, tuple(shape))
-    assert proposals.shape == gt.shape
-    proposals = proposals.astype(np.float32)
-    gt = gt.astype(np.float32)
-    px = (proposals[..., 0] + proposals[..., 2]) * 0.5
-    py = (proposals[..., 1] + proposals[..., 3]) * 0.5
-    pw = proposals[..., 2] - proposals[..., 0] + 1.0
-    ph = proposals[..., 3] - proposals[..., 1] + 1.0
-
-    gx = (gt[..., 0] + gt[..., 2]) * 0.5
-    gy = (gt[..., 1] + gt[..., 3]) * 0.5
-    gw = gt[..., 2] - gt[..., 0] + 1.0
-    gh = gt[..., 3] - gt[..., 1] + 1.0
-
-    dx = (gx - px) / pw
-    dy = (gy - py) / ph
-    dw = np.log(gw / pw)
-    dh = np.log(gh / ph)
-    deltas = np.concatenate(
-        (dx[..., np.newaxis], dy[..., np.newaxis], dw[..., np.newaxis],
-         dh[..., np.newaxis]),
-        axis=-1)
-    return deltas
-
-
-def bbox_transform_inv(bboxes, deltas):
-    """Get ground truth bboxes from input bboxes and deltas
-
-    gw = pw * exp(dw), gx = px + dx * pw
-
-    Args:
-        bboxes(ndarray): shape (..., 4) [x1, y1, x2, y2]
-        deltas(ndarray): shape (..., 4*k) [dx, dy, dw, dh]
-
-    Returns:
-        ndarray: same shape as input deltas
-    """
-    px = (bboxes[..., 0] + bboxes[..., 2]) * 0.5
-    py = (bboxes[..., 1] + bboxes[..., 3]) * 0.5
-    pw = bboxes[..., 2] - bboxes[..., 0] + 1.0
-    ph = bboxes[..., 3] - bboxes[..., 1] + 1.0
-    gw = pw[..., np.newaxis] * np.exp(deltas[..., 2::4])
-    gh = ph[..., np.newaxis] * np.exp(deltas[..., 3::4])
-    gx = px[..., np.newaxis] + pw[..., np.newaxis] * deltas[..., 0::4]
-    gy = py[..., np.newaxis] + ph[..., np.newaxis] * deltas[..., 1::4]
-    shape = list(gx.shape)
-    shape[-1] = shape[-1] * 4
-    return np.stack(
-        (gx - gw * 0.5 + 0.5, gy - gh * 0.5 + 0.5, gx + gw * 0.5 - 0.5,
-         gy + gh * 0.5 - 0.5),
-        axis=-1).reshape(tuple(shape))
-
-
-def bbox_clip(bboxes, img_shape):
-    """Limit bboxes to fit the image size
-
-    Args:
-        bboxes(ndarray): shape (..., 4*k)
-        img_shape(tuple): (height, width)
-    """
-    assert bboxes.shape[-1] % 4 == 0
-    cliped_bboxes = np.empty_like(bboxes, dtype=bboxes.dtype)
-    cliped_bboxes[..., 0::4] = np.maximum(
-        np.minimum(bboxes[..., 0::4], img_shape[1] - 1), 0)
-    cliped_bboxes[..., 1::4] = np.maximum(
-        np.minimum(bboxes[..., 1::4], img_shape[0] - 1), 0)
-    cliped_bboxes[..., 2::4] = np.maximum(
-        np.minimum(bboxes[..., 2::4], img_shape[1] - 1), 0)
-    cliped_bboxes[..., 3::4] = np.maximum(
-        np.minimum(bboxes[..., 3::4], img_shape[0] - 1), 0)
-    return cliped_bboxes
-
-
-def bbox_flip(bboxes, img_shape):
-    """Flip bboxes horizontally
-
-    Args:
-        bboxes(ndarray): shape (..., 4*k)
-        img_shape(tuple): (height, width)
-    """
-    assert bboxes.shape[-1] % 4 == 0
-    w = img_shape[1]
-    flipped = bboxes.copy()
-    flipped[..., 0::4] = w - bboxes[..., 2::4] - 1
-    flipped[..., 2::4] = w - bboxes[..., 0::4] - 1
-    return flipped
+    if not bbox_list:
+        return np.zeros((0, 5), dtype=np.float32)
+    batch_rois = []
+    for i, bboxes in enumerate(bbox_list):
+        num_rois = bboxes.shape[0]
+        batch_inds = np.empty((num_rois, 1), dtype=np.float32)
+        batch_inds.fill(float(i))
+        batch_rois.append(np.hstack([batch_inds, bboxes]))
+    if stack:
+        batch_rois = np.vstack(batch_rois)
+    return batch_rois
 
 
 def bbox_normalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
@@ -197,6 +116,114 @@ def bbox_denormalize(deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
         means = np.tile(means, tuple(reps))
         stds = np.tile(stds, tuple(reps))
     return deltas * stds + means
+
+
+def bbox_transform(proposals, gt, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
+    """Calculate regression deltas from proposals and ground truths
+
+    dx = (gx - px) / pw, dw = log(gw / pw)
+
+    Args:
+        proposals(ndarray): shape (..., 4)
+        gt(ndarray): shape (..., 4) or (1.., 4)
+
+    Returns:
+        ndarray: same shape as proposals
+    """
+    assert proposals.ndim == gt.ndim
+    if gt.shape[0] == 1:
+        shape = [1 for _ in range(proposals.ndim)]
+        shape[0] = proposals.shape[0]
+        gt = np.tile(gt, tuple(shape))
+    assert proposals.shape == gt.shape
+    proposals = proposals.astype(np.float32)
+    gt = gt.astype(np.float32)
+    px = (proposals[..., 0] + proposals[..., 2]) * 0.5
+    py = (proposals[..., 1] + proposals[..., 3]) * 0.5
+    pw = proposals[..., 2] - proposals[..., 0] + 1.0
+    ph = proposals[..., 3] - proposals[..., 1] + 1.0
+
+    gx = (gt[..., 0] + gt[..., 2]) * 0.5
+    gy = (gt[..., 1] + gt[..., 3]) * 0.5
+    gw = gt[..., 2] - gt[..., 0] + 1.0
+    gh = gt[..., 3] - gt[..., 1] + 1.0
+
+    dx = (gx - px) / pw
+    dy = (gy - py) / ph
+    dw = np.log(gw / pw)
+    dh = np.log(gh / ph)
+    deltas = np.concatenate(
+        (dx[..., np.newaxis], dy[..., np.newaxis], dw[..., np.newaxis],
+         dh[..., np.newaxis]),
+        axis=-1)
+    if means != [0, 0, 0, 0] or stds != [1, 1, 1, 1]:
+        deltas = bbox_normalize(deltas, means, stds)
+    return deltas
+
+
+def bbox_transform_inv(bboxes, deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
+    """Get ground truth bboxes from input bboxes and deltas
+
+    gw = pw * exp(dw), gx = px + dx * pw
+
+    Args:
+        bboxes(ndarray): shape (..., 4) [x1, y1, x2, y2]
+        deltas(ndarray): shape (..., 4*k) [dx, dy, dw, dh]
+
+    Returns:
+        ndarray: same shape as input deltas
+    """
+    if means != [0, 0, 0, 0] or stds != [1, 1, 1, 1]:
+        deltas = bbox_denormalize(deltas, means, stds)
+    px = (bboxes[..., 0] + bboxes[..., 2]) * 0.5
+    py = (bboxes[..., 1] + bboxes[..., 3]) * 0.5
+    pw = bboxes[..., 2] - bboxes[..., 0] + 1.0
+    ph = bboxes[..., 3] - bboxes[..., 1] + 1.0
+    gw = pw[..., np.newaxis] * np.exp(deltas[..., 2::4])
+    gh = ph[..., np.newaxis] * np.exp(deltas[..., 3::4])
+    gx = px[..., np.newaxis] + pw[..., np.newaxis] * deltas[..., 0::4]
+    gy = py[..., np.newaxis] + ph[..., np.newaxis] * deltas[..., 1::4]
+    shape = list(gx.shape)
+    shape[-1] = shape[-1] * 4
+    return np.stack(
+        (gx - gw * 0.5 + 0.5, gy - gh * 0.5 + 0.5, gx + gw * 0.5 - 0.5,
+         gy + gh * 0.5 - 0.5),
+        axis=-1).reshape(tuple(shape))
+
+
+def bbox_clip(bboxes, img_shape):
+    """Limit bboxes to fit the image size
+
+    Args:
+        bboxes(ndarray): shape (..., 4*k)
+        img_shape(tuple): (height, width)
+    """
+    assert bboxes.shape[-1] % 4 == 0
+    cliped_bboxes = np.empty_like(bboxes, dtype=bboxes.dtype)
+    cliped_bboxes[..., 0::4] = np.maximum(
+        np.minimum(bboxes[..., 0::4], img_shape[1] - 1), 0)
+    cliped_bboxes[..., 1::4] = np.maximum(
+        np.minimum(bboxes[..., 1::4], img_shape[0] - 1), 0)
+    cliped_bboxes[..., 2::4] = np.maximum(
+        np.minimum(bboxes[..., 2::4], img_shape[1] - 1), 0)
+    cliped_bboxes[..., 3::4] = np.maximum(
+        np.minimum(bboxes[..., 3::4], img_shape[0] - 1), 0)
+    return cliped_bboxes
+
+
+def bbox_flip(bboxes, img_shape):
+    """Flip bboxes horizontally
+
+    Args:
+        bboxes(ndarray): shape (..., 4*k)
+        img_shape(tuple): (height, width)
+    """
+    assert bboxes.shape[-1] % 4 == 0
+    w = img_shape[1]
+    flipped = bboxes.copy()
+    flipped[..., 0::4] = w - bboxes[..., 2::4] - 1
+    flipped[..., 2::4] = w - bboxes[..., 0::4] - 1
+    return flipped
 
 
 def bbox_scaling(bboxes, scale, clip_shape=None):

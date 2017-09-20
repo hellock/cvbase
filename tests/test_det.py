@@ -241,6 +241,20 @@ class TestBboxTransform(object):
         p_bboxes3 = cvb.bbox_perturb(bbox, 0.2, num, min_iou=0.9, max_try=200)
         assert max(p_bboxes2.shape[0], p_bboxes3.shape[0]) > p_bboxes1.shape[0]
 
+    def test_bbox2roi(self):
+        bbox_list = [
+            np.array([[100, 100, 199, 199]]),
+            np.array([[0, 0, 99, 99]]),
+        ]
+        assert_array_equal(
+            cvb.bbox2roi(bbox_list),
+            np.array([[0, 100, 100, 199, 199], [1, 0, 0, 99, 99]]))
+        assert_array_equal(
+            cvb.bbox2roi([]), np.zeros((0, 5), dtype=np.float32))
+        assert_array_equal(
+            cvb.bbox2roi([np.zeros((0, 4), dtype=np.float32)]),
+            np.zeros((0, 5), dtype=np.float32))
+
 
 class TestEval(object):
 

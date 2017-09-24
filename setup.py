@@ -1,7 +1,11 @@
 import sys
 from setuptools import find_packages, setup
 
-from cvbase import __version__
+install_requires = [
+    'numpy>=1.11.1', 'matplotlib', 'pyyaml', 'six', 'terminaltables'
+]
+if sys.version_info < (3, 4):
+    install_requires.append('enum34')
 
 
 def readme():
@@ -9,15 +13,16 @@ def readme():
         return f.read()
 
 
-install_requires = [
-    'numpy>=1.11.1', 'matplotlib', 'pyyaml', 'six', 'terminaltables'
-]
-if sys.version_info < (3, 4):
-    install_requires.append('enum34')
+def get_version():
+    version_file = 'cvbase/version.py'
+    with open(version_file, 'r') as f:
+        exec(compile(f.read(), version_file, 'exec'))
+    return locals()['__version__']
+
 
 setup(
     name='cvbase',
-    version=__version__,
+    version=get_version(),
     description='Utils for computer vision research',
     long_description=readme(),
     keywords='computer vision',

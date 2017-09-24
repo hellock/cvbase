@@ -303,3 +303,37 @@ def bbox_perturb(bbox,
         return p_bboxes[:num, :]
     else:
         return p_bboxes
+
+
+def list2flat(bbox_list):
+    """Convert a list of bboxes to a numpy array with one col added
+
+    Args:
+        bbox_list(list): a list of (n, k) arrays
+
+    Returns:
+        ndarray: shape (sum_n, k+1)
+    """
+    bbox_flat = []
+    for i, cls_bbox in enumerate(bbox_list):
+        cls_label = i * np.ones((cls_bbox.shape[0], 1), dtype=cls_bbox.dtype)
+        label_bbox = np.hstack([cls_label, cls_bbox])
+        bbox_flat.append(label_bbox)
+    return np.vstack(bbox_flat)
+
+
+def flat2list(bbox_flat, num_classes=30):
+    """Convert a flat array to a list of array
+
+    Args:
+        bbox_flat(list): shape (sum_n, k+1)
+        num_classes(int): num of classes, length of list
+
+    Returns:
+        list: a list of (n, k) arrays
+    """
+    bbox_list = []
+    for i in range(num_classes):
+        inds = bbox_flat[:, 0].astype(np.int32) == i
+        bbox_list.append(bbox_flat[inds, 1:])
+    return bbox_list

@@ -20,7 +20,7 @@ cache:
 
 env:
   global:
-    - OPENCV_VERSION=3.2.0
+    - OPENCV_VERSION=3.3.0
     - OPENCV_INSTALL_PATH=$HOME/opencv_${OPENCV_VERSION}_install
 
 python:

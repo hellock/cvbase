@@ -3,6 +3,7 @@ from .det import *
 from .io import *
 from .progress import *
 from .timer import *
+from .version import __version__
 # require opencv
 try:
     from .image import *
@@ -11,5 +12,3 @@ try:
     from .visualize import *
 except ImportError:
     pass
-
-__version__ = '0.2.9'

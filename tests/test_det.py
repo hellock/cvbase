@@ -255,6 +255,24 @@ class TestBboxTransform(object):
             cvb.bbox2roi([np.zeros((0, 4), dtype=np.float32)]),
             np.zeros((0, 5), dtype=np.float32))
 
+    def test_list_flat_conversion(self):
+        bbox_list = [
+            np.array([[10, 100, 99, 199, 0.67]], dtype=np.float32),
+            np.array(
+                [[0, 0, 99, 99, 0.15], [10, 20, 55, 87, 0.87]],
+                dtype=np.float32),
+            np.zeros((0, 5), dtype=np.float32)
+        ]
+        bbox_flat = np.array(
+            [[0, 10, 100, 99, 199, 0.67], [1, 0, 0, 99, 99, 0.15],
+             [1, 10, 20, 55, 87, 0.87]],
+            dtype=np.float32)
+        assert_array_equal(cvb.list2flat(bbox_list), bbox_flat)
+        bbox_list_cvt = cvb.flat2list(bbox_flat, len(bbox_list))
+        assert len(bbox_list_cvt) == len(bbox_list)
+        for b1, b2 in zip(bbox_list_cvt, bbox_list):
+            assert_array_equal(b1, b2)
+
 
 class TestEval(object):
 

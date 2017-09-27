@@ -264,8 +264,8 @@ class TestBboxTransform(object):
             np.zeros((0, 5), dtype=np.float32)
         ]
         bbox_flat = np.array(
-            [[0, 10, 100, 99, 199, 0.67], [1, 0, 0, 99, 99, 0.15],
-             [1, 10, 20, 55, 87, 0.87]],
+            [[10, 100, 99, 199, 0.67, 0], [0, 0, 99, 99, 0.15, 1],
+             [10, 20, 55, 87, 0.87, 1]],
             dtype=np.float32)
         assert_array_equal(cvb.list2flat(bbox_list), bbox_flat)
         bbox_list_cvt = cvb.flat2list(bbox_flat, len(bbox_list))

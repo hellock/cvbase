@@ -317,7 +317,7 @@ def list2flat(bbox_list):
     bbox_flat = []
     for i, cls_bbox in enumerate(bbox_list):
         cls_label = i * np.ones((cls_bbox.shape[0], 1), dtype=cls_bbox.dtype)
-        label_bbox = np.hstack([cls_label, cls_bbox])
+        label_bbox = np.hstack([cls_bbox, cls_label])
         bbox_flat.append(label_bbox)
     return np.vstack(bbox_flat)
 
@@ -334,6 +334,7 @@ def flat2list(bbox_flat, num_classes=30):
     """
     bbox_list = []
     for i in range(num_classes):
-        inds = bbox_flat[:, 0].astype(np.int32) == i
-        bbox_list.append(bbox_flat[inds, 1:])
+        inds = bbox_flat[:, -1].astype(np.int32) == i
+        bbox_list.append(bbox_flat[inds, :-1])
+    assert bbox_flat.shape[0] == sum([bbox.shape[0] for bbox in bbox_list])
     return bbox_list

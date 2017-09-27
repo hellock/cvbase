@@ -201,3 +201,27 @@ class TestImage(object):
         for i in range(len(patches)):
             ref_patch = np.load(patch_path + '/pad0_{}.npy'.format(i))
             assert_array_equal(patches[i], ref_patch)
+
+    def test_pad_img(self):
+        img = np.random.rand(10, 10, 3).astype(np.float32)
+        padded_img = cvb.pad_img(img, (15, 12), 0)
+        assert_array_equal(img, padded_img[:10, :10, :])
+        assert_array_equal(
+            np.zeros((5, 12, 3), dtype='float32'), padded_img[10:, :, :])
+        assert_array_equal(
+            np.zeros((15, 2, 3), dtype='float32'), padded_img[:, 10:, :])
+        img = np.random.randint(256, size=(10, 10, 3)).astype('uint8')
+        padded_img = cvb.pad_img(img, (15, 12, 3), [100, 110, 120])
+        assert_array_equal(img, padded_img[:10, :10, :])
+        assert_array_equal(
+            np.array([100, 110, 120], dtype='uint8') * np.ones(
+                (5, 12, 3), dtype='uint8'), padded_img[10:, :, :])
+        assert_array_equal(
+            np.array([100, 110, 120], dtype='uint8') * np.ones(
+                (15, 2, 3), dtype='uint8'), padded_img[:, 10:, :])
+        with pytest.raises(AssertionError):
+            cvb.pad_img(img, (15, ), 0)
+        with pytest.raises(AssertionError):
+            cvb.pad_img(img, (5, 5), 0)
+        with pytest.raises(AssertionError):
+            cvb.pad_img(img, (5, 5), [0, 1])

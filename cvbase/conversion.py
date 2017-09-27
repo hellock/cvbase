@@ -37,3 +37,18 @@ def slice_list(in_list, lens):
         out_list.append(in_list[idx:idx + lens[i]])
         idx += lens[i]
     return out_list
+
+
+def merge_list(in_list):
+    """Merge a list of list into a single list
+
+    Args:
+        in_list(list): the list of list to be merged
+
+    Returns:
+        list: the flat list
+    """
+    out_list = []
+    for sub_list in in_list:
+        out_list.extend(sub_list)
+    return out_list

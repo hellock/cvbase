@@ -336,3 +336,27 @@ def crop_img(img, bboxes, scale_ratio=1.0, pad_fill=None):
         return patches[0]
     else:
         return patches
+
+
+def pad_img(img, shape, pad_val):
+    """Pad an image to a certain shape
+
+    Args:
+        img(ndarray): image to be padded
+        shape(tuple): expected padding shape
+        pad_val(float or int or list): values to be filled in padding areas
+
+    Outputs:
+        ndarray: padded image
+    """
+    if not isinstance(pad_val, (int, float)):
+        assert len(pad_val) == img.shape[-1]
+    if len(shape) < len(img.shape):
+        shape = shape + (img.shape[-1], )
+    assert len(shape) == len(img.shape)
+    for i in range(len(shape) - 1):
+        assert shape[i] >= img.shape[i]
+    pad = np.empty(shape, dtype=img.dtype)
+    pad[...] = pad_val
+    pad[:img.shape[0], :img.shape[1], ...] = img
+    return pad

@@ -27,3 +27,8 @@ def test_slice_list():
         cvb.slice_list(in_list, 2.0)
     with pytest.raises(ValueError):
         cvb.slice_list(in_list, [1, 2])
+
+
+def test_merge_list():
+    in_list = [[1, 2], [3, 4, 5], [6]]
+    assert cvb.merge_list(in_list) == [1, 2, 3, 4, 5, 6]

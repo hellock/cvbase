@@ -1,3 +1,5 @@
+import os
+
 import cvbase as cvb
 import numpy as np
 import pytest
@@ -354,14 +356,14 @@ class TestEval(object):
         # the following data are not reasonable, just for testing
         mean_ap = 0.55
         results = [{
-            'gt_num': 10,
-            'det_num': 40,
+            'num_gts': 10,
+            'num_dets': 40,
             'recall': np.array([0.1, 0.2, 0.3, 0.4]),
             'precision': np.array([0.4, 0.3, 0.2, 0.1]),
             'ap': 0.66
         }, {
-            'gt_num': 15,
-            'det_num': 50,
+            'num_gts': 15,
+            'num_dets': 50,
             'recall': np.array([0.25, 0.35, 0.45]),
             'precision': np.array([0.32, 0.26, 0.17]),
             'ap': 0.44
@@ -379,11 +381,11 @@ class TestEval(object):
         assert out == table
 
         results.append({
-            'gt_num': 5,
-            'det_num': 0,
+            'num_gts': 5,
+            'num_dets': 0,
             'recall': np.array([]),
             'precision': np.array([]),
-            'ap': 0.44
+            'ap': 0
         })
         cvb.print_map_summary(mean_ap, results)
         out, _ = capsys.readouterr()
@@ -392,7 +394,34 @@ class TestEval(object):
                  '+-------+-----+------+--------+-----------+-------+\n'
                  '| 1     | 10  | 40   | 0.400  | 0.100     | 0.660 |\n'
                  '| 2     | 15  | 50   | 0.450  | 0.170     | 0.440 |\n'
-                 '| 2     | 5   | 0    | 0      | 0         | 0.000 |\n'
+                 '| 3     | 5   | 0    | 0.000  | 0.000     | 0.000 |\n'
                  '+-------+-----+------+--------+-----------+-------+\n'
                  '| mAP   |     |      |        |           | 0.550 |\n'
                  '+-------+-----+------+--------+-----------+-------+\n')
+        assert out == table
+
+        cvb.print_map_summary(mean_ap, results, dataset='voc')
+        out, _ = capsys.readouterr()
+        table = ('+-----------+-----+------+--------+-----------+-------+\n'
+                 '| class     | gts | dets | recall | precision | ap    |\n'
+                 '+-----------+-----+------+--------+-----------+-------+\n'
+                 '| aeroplane | 10  | 40   | 0.400  | 0.100     | 0.660 |\n'
+                 '| bicycle   | 15  | 50   | 0.450  | 0.170     | 0.440 |\n'
+                 '| bird      | 5   | 0    | 0.000  | 0.000     | 0.000 |\n'
+                 '+-----------+-----+------+--------+-----------+-------+\n'
+                 '| mAP       |     |      |        |           | 0.550 |\n'
+                 '+-----------+-----+------+--------+-----------+-------+\n')
+        assert out == table
+
+
+def test_read_labels():
+    label_names = ['a', 'b', 'c']
+    assert cvb.read_labels(label_names) == label_names
+    voc_labels = [
+        'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat',
+        'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person',
+        'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor'
+    ]
+    assert cvb.read_labels('voc') == voc_labels
+    label_file = os.path.join(os.path.dirname(__file__), 'data/voc_labels.txt')
+    assert cvb.read_labels(label_file) == voc_labels

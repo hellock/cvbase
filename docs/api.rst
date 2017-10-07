@@ -35,3 +35,7 @@ API
 .. automodule:: cvbase.det.eval
     :members:
     :show-inheritance:
+
+.. automodule:: cvbase.det.labels
+    :members:
+    :show-inheritance:

@@ -39,7 +39,7 @@ There are some popular features such as progress visualization, timer, video to 
 
     tasks = [item_1, item_2, ..., item_n]
 
-    cvb.track_progress(func, tasks, 8)
+    cvb.track_parallel_progress(func, tasks, 8)
     # 8 workers
     ```
 

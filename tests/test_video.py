@@ -1,4 +1,5 @@
 import os
+import tempfile
 from collections import OrderedDict
 
 import cvbase as cvb
@@ -17,27 +18,24 @@ class TestCache(object):
     def test_put(self):
         cache = cvb.Cache(3)
         for i in range(1, 4):
-            cache.put('key{}'.format(i), i)
+            cache.put('k{}'.format(i), i)
             assert cache.size == i
-        assert cache._cache == OrderedDict([('key1', 1), ('key2', 2),
-                                            ('key3', 3)])
-        cache.put('key4', 4)
+        assert cache._cache == OrderedDict([('k1', 1), ('k2', 2), ('k3', 3)])
+        cache.put('k4', 4)
         assert cache.size == 3
-        assert cache._cache == OrderedDict([('key2', 2), ('key3', 3),
-                                            ('key4', 4)])
-        cache.put('key2', 2)
-        assert cache._cache == OrderedDict([('key2', 2), ('key3', 3),
-                                            ('key4', 4)])
+        assert cache._cache == OrderedDict([('k2', 2), ('k3', 3), ('k4', 4)])
+        cache.put('k2', 2)
+        assert cache._cache == OrderedDict([('k2', 2), ('k3', 3), ('k4', 4)])
 
     def test_get(self):
         cache = cvb.Cache(3)
         assert cache.get('key_none') is None
         assert cache.get('key_none', 0) == 0
-        cache.put('key1', 1)
-        assert cache.get('key1') == 1
+        cache.put('k1', 1)
+        assert cache.get('k1') == 1
 
 
-class TestImage(object):
+class TestVideo(object):
 
     @classmethod
     def setup_class(cls):
@@ -51,21 +49,22 @@ class TestImage(object):
         assert v.height == 240
         assert v.fps == 25
         assert v.frame_cnt == self.num_frames
+        assert len(v) == self.num_frames
         assert v.opened
         import cv2
         assert isinstance(v.vcap, type(cv2.VideoCapture()))
 
     def test_read(self):
         v = cvb.VideoReader(self.video_path)
-        _, img = v.read()
+        img = v.read()
         assert int(round(img.mean())) == 94
-        _, img = v.get_frame(64)
+        img = v.get_frame(64)
         assert int(round(img.mean())) == 94
-        _, img = v.get_frame(65)
+        img = v[65]
         assert int(round(img.mean())) == 205
-        _, img = v.get_frame(64)
+        img = v[64]
         assert int(round(img.mean())) == 94
-        _, img = v.read()
+        img = v.read()
         assert int(round(img.mean())) == 205
         with pytest.raises(ValueError):
             v.get_frame(self.num_frames + 1)
@@ -100,14 +99,13 @@ class TestImage(object):
 
     def test_cvt2frames(self):
         v = cvb.VideoReader(self.video_path)
-        frame_dir = '.cvbase_test'
+        frame_dir = tempfile.mkdtemp()
         v.cvt2frames(frame_dir)
         assert os.path.isdir(frame_dir)
         for i in range(self.num_frames):
             filename = '{}/{:06d}.jpg'.format(frame_dir, i)
             assert os.path.isfile(filename)
             os.remove(filename)
-        os.removedirs(frame_dir)
 
         v = cvb.VideoReader(self.video_path)
         v.cvt2frames(frame_dir, show_progress=False)
@@ -116,16 +114,14 @@ class TestImage(object):
             filename = '{}/{:06d}.jpg'.format(frame_dir, i)
             assert os.path.isfile(filename)
             os.remove(filename)
-        os.removedirs(frame_dir)
 
         v = cvb.VideoReader(self.video_path)
         v.cvt2frames(
             frame_dir,
-            filename_digit=3,
-            start=100,
-            max_num=20,
             file_start=100,
-            ext='JPEG')
+            filename_tmpl='{:03d}.JPEG',
+            start=100,
+            max_num=20)
         assert os.path.isdir(frame_dir)
         for i in range(100, 120):
             filename = '{}/{:03d}.JPEG'.format(frame_dir, i)
@@ -135,7 +131,7 @@ class TestImage(object):
 
     def test_frames2video(self):
         v = cvb.VideoReader(self.video_path)
-        frame_dir = '.cvbase_test'
+        frame_dir = tempfile.mkdtemp()
         out_filename = '.cvbase_test.avi'
         v.cvt2frames(frame_dir)
         assert os.path.isdir(frame_dir)
@@ -146,7 +142,7 @@ class TestImage(object):
         cvb.frames2video(frame_dir, out_filename)
         v = cvb.VideoReader(out_filename)
         assert v.fps == 30
-        assert v.frame_cnt == self.num_frames
+        assert len(v) == self.num_frames
 
         cvb.frames2video(
             frame_dir,
@@ -157,10 +153,28 @@ class TestImage(object):
             show_progress=False)
         v = cvb.VideoReader(out_filename)
         assert v.fps == 25
-        assert v.frame_cnt == 40
+        assert len(v) == 40
 
         for i in range(self.num_frames):
             filename = '{}/{:06d}.jpg'.format(frame_dir, i)
             os.remove(filename)
         os.removedirs(frame_dir)
         os.remove(out_filename)
+
+    def test_cut_concat_video(self):
+        part1_file = '.tmp1.mp4'
+        part2_file = '.tmp2.mp4'
+        cvb.cut_video(self.video_path, part1_file, end=3, vcodec='h264')
+        cvb.cut_video(self.video_path, part2_file, start=3, vcodec='h264')
+        v1 = cvb.VideoReader(part1_file)
+        v2 = cvb.VideoReader(part2_file)
+        assert len(v1) == 75
+        assert len(v2) == self.num_frames - 75
+
+        out_file = 'tmp.mp4'
+        cvb.concat_video([part1_file, part2_file], out_file)
+        v = cvb.VideoReader(out_file)
+        assert len(v) == self.num_frames
+        os.remove(part1_file)
+        os.remove(part2_file)
+        os.remove(out_file)

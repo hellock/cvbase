@@ -1,3 +1,6 @@
+import os
+import subprocess
+import tempfile
 from collections import OrderedDict
 from os import path
 
@@ -50,6 +53,27 @@ class Cache(object):
 
 
 class VideoReader(object):
+    """Video class with similar usage to a list object.
+
+    This video warpper class provides convenient apis to access frames.
+    There exists an issue of OpenCV's VideoCapture class that jumping to a
+    certain frame may be inaccurate. It is fixed in this class by checking
+    the position after jumping each time.
+
+    Cache is used when decoding videos. So if the same frame is visited for the second time,
+    there is no need to decode again if it is stored in the cache.
+
+    :Example:
+
+    >>> import cvbase as cvb
+    >>> v = cvb.VideoReader('sample.mp4')
+    >>> len(v)  # get the total frame number with `len()`
+    120
+    >>> for img in v:  # v is iterable
+    >>>     cvb.show_img(img)
+    >>> v[5]  # get the 6th frame
+
+    """
 
     def __init__(self, filename, cache_capacity=10):
         check_file_exist(filename, 'Video file not found: ' + filename)
@@ -66,34 +90,47 @@ class VideoReader(object):
 
     @property
     def vcap(self):
+        """:obj:`cv2.VideoCapture`: raw VideoCapture object"""
         return self._vcap
 
     @property
     def opened(self):
+        """bool: indicate whether the video is opened"""
         return self._vcap.isOpened()
 
     @property
     def width(self):
+        """int: width of video frames"""
         return self._width
 
     @property
     def height(self):
+        """int: height of video frames"""
         return self._height
 
     @property
+    def resolution(self):
+        """tuple: video resolution (width, height)"""
+        return (self._width, self._height)
+
+    @property
     def fps(self):
+        """int: fps of the video"""
         return self._fps
 
     @property
     def frame_cnt(self):
+        """int: total frames of the video"""
         return self._frame_cnt
 
     @property
     def fourcc(self):
+        """str: "four character code" of the video"""
         return self._fourcc
 
     @property
     def position(self):
+        """int: current cursor position, indicating which frame"""
         return self._position
 
     def _get_real_position(self):
@@ -107,6 +144,14 @@ class VideoReader(object):
         self._position = frame_id
 
     def read(self):
+        """Read the next frame
+
+        If the next frame have been decoded before and in the cache, then
+        return it directly, otherwise decode and return it, put it in the cache.
+
+        Returns:
+            ndarray or None: return the frame if successful, otherwise None.
+        """
         pos = self._position + 1
         if self._cache:
             img = self._cache.get(pos)
@@ -122,27 +167,41 @@ class VideoReader(object):
             ret, img = self._vcap.read()
         if ret:
             self._position = pos
-        return (ret, img)
+        return img
 
     def get_frame(self, frame_id):
+        """Get frame by frame id
+
+        Args:
+            frame_id(int): id of the expected frame, 1-based index
+
+        Returns:
+            ndarray or None: return the frame if successful, otherwise None.
+        """
         if frame_id <= 0 or frame_id > self._frame_cnt:
-            raise ValueError('frame_id must be between 1 and frame_cnt')
+            raise ValueError(
+                '"frame_id" must be between 1 and {}'.format(self._frame_cnt))
         if frame_id == self._position + 1:
             return self.read()
         if self._cache:
             img = self._cache.get(frame_id)
             if img is not None:
                 self._position = frame_id
-                return (True, img)
+                return img
         self._set_real_position(frame_id - 1)
         ret, img = self._vcap.read()
         if ret:
             self._position += 1
             if self._cache:
                 self._cache.put(self._position, img)
-        return (ret, img)
+        return img
 
     def current_frame(self):
+        """Get the current frame (frame that is just visited)
+
+        Returns:
+            ndarray or None: if the video is fresh, return None, otherwise return the frame.
+        """
         if self._position == 0:
             return None
         return self._cache.get(self._position)
@@ -150,11 +209,20 @@ class VideoReader(object):
     def cvt2frames(self,
                    frame_dir,
                    file_start=0,
-                   filename_digit=6,
-                   ext='jpg',
+                   filename_tmpl='{:06d}.jpg',
                    start=0,
                    max_num=0,
                    show_progress=True):
+        """Convert a video to frame images
+
+        Args:
+            frame_dir(str): output directory to store all the frame images
+            file_start(int): from which filename starts
+            filename_tmpl(str): filename template, with the index as the variable
+            start(int): starting frame index
+            max_num(int): maximum number of frames to be written
+            show_progress(bool): whether to show a progress bar
+        """
         mkdir_or_exist(frame_dir)
         if max_num == 0:
             task_num = self.frame_cnt - start
@@ -166,9 +234,8 @@ class VideoReader(object):
             self._set_real_position(start)
 
         def write_frame(file_idx):
-            ret, img = self.read()
-            filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
-                file_idx, filename_digit, ext))
+            img = self.read()
+            filename = path.join(frame_dir, filename_tmpl.format(file_idx))
             cv2.imwrite(filename, img)
 
         if show_progress:
@@ -176,20 +243,26 @@ class VideoReader(object):
                            range(file_start, file_start + task_num))
         else:
             for i in range(task_num):
-                ret, img = self.read()
-                if not ret:
+                img = self.read()
+                if img is None:
                     break
-                filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
-                    i + file_start, filename_digit, ext))
+                filename = path.join(frame_dir,
+                                     filename_tmpl.format(i + file_start))
                 cv2.imwrite(filename, img)
+
+    def __len__(self):
+        return self.frame_cnt
+
+    def __getitem__(self, i):
+        return self.get_frame(i)
 
     def __iter__(self):
         self._set_real_position(0)
         return self
 
     def __next__(self):
-        ret, img = self.read()
-        if ret:
+        img = self.read()
+        if img is not None:
             return img
         else:
             raise StopIteration
@@ -207,17 +280,26 @@ def frames2video(frame_dir,
                  video_file,
                  fps=30,
                  fourcc='XVID',
-                 filename_digit=6,
-                 ext='jpg',
+                 filename_tmpl='{:06d}.jpg',
                  start=0,
                  end=0,
                  show_progress=True):
-    """read the frame images from a directory and join them as a video
+    """Read the frame images from a directory and join them as a video
+
+    Args:
+        frame_dir(str): frame directory
+        video_file(str): output video filename
+        fps(int): fps of the output video
+        fourcc(str): foutcc of the output video, this should be compatible with the output file type
+        filename_tmpl(str): filename template, with the index as the variable
+        start(int): starting frame index
+        end(int): ending frame index
+        show_progress(bool): whether to show a progress bar
     """
     if end == 0:
+        ext = filename_tmpl.split('.')[-1]
         end = len([name for name in scandir(frame_dir, ext)])
-    first_file = path.join(frame_dir,
-                           '{0:0{1}d}.{2}'.format(start, filename_digit, ext))
+    first_file = path.join(frame_dir, filename_tmpl.format(start))
     check_file_exist(first_file, 'The start frame not found: ' + first_file)
     img = cv2.imread(first_file)
     height, width = img.shape[:2]
@@ -226,8 +308,7 @@ def frames2video(frame_dir,
                               VideoWriter_fourcc(*fourcc), fps, resolution)
 
     def write_frame(file_idx):
-        filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
-            file_idx, filename_digit, ext))
+        filename = path.join(frame_dir, filename_tmpl.format(file_idx))
         img = cv2.imread(filename)
         vwriter.write(img)
 
@@ -235,8 +316,74 @@ def frames2video(frame_dir,
         track_progress(write_frame, range(start, end))
     else:
         for i in range(start, end):
-            filename = path.join(frame_dir, '{0:0{1}d}.{2}'.format(
-                i, filename_digit, ext))
+            filename = path.join(frame_dir, filename_tmpl.format(i))
             img = cv2.imread(filename)
             vwriter.write(img)
     vwriter.release()
+
+
+def check_ffmpeg():
+    if subprocess.call('which ffmpeg', shell=True) != 0:
+        raise RuntimeError('ffmpeg is not installed')
+
+
+def cut_video(in_file,
+              out_file,
+              start=None,
+              end=None,
+              vcodec=None,
+              acodec=None,
+              quiet=False):
+    """Cut a clip from a video
+
+    Args:
+        in_file(str): input video filename
+        out_file(str): output video filename
+        start(None or float): start time (in seconds)
+        end(None or float): end time (in seconds)
+        vcodec(None or str): output video codec, None for unchanged
+        acodec(None or str): output audio codec, None for unchanged
+        quiet(bool): whether to print no information
+    """
+    check_ffmpeg()
+    if vcodec is None:
+        vcodec = 'copy'
+    if acodec is None:
+        acodec = 'copy'
+    options = ['-vcodec ' + vcodec, '-acodec ' + acodec]
+    if start:
+        options.append('-ss ' + str(start))
+    else:
+        start = 0
+    if end:
+        options.append('-t ' + str(end - start))
+    if quiet:
+        options.append('-v quiet')
+    cmd = 'ffmpeg -y -i {} {} {}'.format(in_file, ' '.join(options), out_file)
+    subprocess.call(cmd, shell=True)
+
+
+def concat_video(video_list, out_file, vcodec=None, acodec=None, quiet=False):
+    """Concatenate multiple videos into a single one
+
+    Args:
+        video_list(list): a list of video filenames
+        out_file(str): output video filename
+        vcodec(None or str): output video codec, None for unchanged
+        acodec(None or str): output audio codec, None for unchanged
+        quiet(bool): whether to print no information
+    """
+    check_ffmpeg()
+    _, tmp_filename = tempfile.mkstemp(suffix='.txt', text=True)
+    with open(tmp_filename, 'w') as f:
+        for filename in video_list:
+            f.write('file {}\n'.format(path.abspath(filename)))
+    if vcodec is None:
+        vcodec = 'copy'
+    if acodec is None:
+        acodec = 'copy'
+    codecs = '-vcodec ' + vcodec + ' -acodec ' + acodec
+    cmd = 'ffmpeg -y -f concat -safe 0 -i {} {} {}'.format(
+        tmp_filename, codecs, out_file)
+    subprocess.call(cmd, shell=True)
+    os.remove(tmp_filename)

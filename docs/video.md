@@ -1,22 +1,27 @@
 ## Video
 
-This module provides friendly apis to read videos.
+This module provides friendly apis to read and edit videos.
 
 ```python
 import cvbase as cvb
 
 video = cvb.VideoReader('test.mp4')
 # access basic info
-print(video.width, video.height, video.fps, video.frame_cnt)
+print(len(video))
+print(video.width, video.height, video.resolution, video.fps)
 # iterate over all frames
 for frame in video:
     print(frame.shape)
 # read the next frame
-ret, img = video.read()
+img = video.read()
 # read a frame by index
-ret, img = video.get_frame(100)
+img = video[100]
 # split a video into frames and save to a folder
 video.cvt2frames('out_dir')
 # generate video from frames
-cvb.test_frames2video('out_dir', 'test.avi')
+cvb.frames2video('out_dir', 'test.avi')
+# cut a video clip
+cvb.cut_video('test.mp4', 'clip1.mp4', start=3, end=10, vcodec='h264')
+# join a list of video clips
+cvb.cut_video(['clip1.mp4', 'clip2.mp4'], 'joined.mp4', quiet=True)
 ```

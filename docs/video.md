@@ -1,6 +1,6 @@
 ## Video
 
-This module provides friendly apis to read and edit videos.
+This module provides friendly apis to read and convert videos.
 
 ```python
 import cvbase as cvb
@@ -20,8 +20,19 @@ img = video[100]
 video.cvt2frames('out_dir')
 # generate video from frames
 cvb.frames2video('out_dir', 'test.avi')
+```
+
+There are also some methods for editing videos, which wraps the commands of ffmpeg.
+
+```python
+import cvbase as cvb
+
 # cut a video clip
 cvb.cut_video('test.mp4', 'clip1.mp4', start=3, end=10, vcodec='h264')
 # join a list of video clips
-cvb.cut_video(['clip1.mp4', 'clip2.mp4'], 'joined.mp4', quiet=True)
+cvb.concat_video(['clip1.mp4', 'clip2.mp4'], 'joined.mp4', log_level='quiet')
+# resize a video with the specified size
+cvb.resize_video('test.mp4', 'resized1.mp4', (360, 240))
+# resize a video with a scaling ratio of 2
+cvb.resize_video('test.mp4', 'resized2.mp4', ratio=2)
 ```

@@ -178,3 +178,23 @@ class TestVideo(object):
         os.remove(part1_file)
         os.remove(part2_file)
         os.remove(out_file)
+
+    def test_resize_video(self):
+        out_file = '.tmp.mp4'
+        cvb.resize_video(self.video_path, out_file, (200, 100), quiet=True)
+        v = cvb.VideoReader(out_file)
+        assert v.resolution == (200, 100)
+        os.remove(out_file)
+        cvb.resize_video(self.video_path, out_file, ratio=2)
+        v = cvb.VideoReader(out_file)
+        assert v.resolution == (294 * 2, 240 * 2)
+        os.remove(out_file)
+        cvb.resize_video(self.video_path, out_file, (1000, 480), keep_ar=True)
+        v = cvb.VideoReader(out_file)
+        assert v.resolution == (294 * 2, 240 * 2)
+        os.remove(out_file)
+        cvb.resize_video(
+            self.video_path, out_file, ratio=(2, 1.5), keep_ar=True)
+        v = cvb.VideoReader(out_file)
+        assert v.resolution == (294 * 2, 360)
+        os.remove(out_file)

@@ -1,3 +1,4 @@
+import functools
 import os
 import subprocess
 import tempfile
@@ -322,18 +323,102 @@ def frames2video(frame_dir,
     vwriter.release()
 
 
-def check_ffmpeg():
-    if subprocess.call('which ffmpeg', shell=True) != 0:
-        raise RuntimeError('ffmpeg is not installed')
+def check_ffmpeg(func):
+    """A decorator to check if ffmpeg is installed"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if subprocess.call('which ffmpeg', shell=True) != 0:
+            raise RuntimeError('ffmpeg is not installed')
+        func(*args, **kwargs)
+
+    return wrapper
 
 
+@check_ffmpeg
+def convert_video(in_file, out_file, pre_options='', **kwargs):
+    """Convert a video with ffmpeg
+
+    This provides a general api to ffmpeg, the executed command is::
+
+        ffmpeg -y <pre_options> -i <in_file> <options> <out_file>
+
+    Options(kwargs) are mapped to ffmpeg commands by the following rules:
+
+    - key=val: "-key val"
+    - key=True: "-key"
+    - key=False: ""
+
+    Args:
+        in_file(str): input video filename
+        out_file(str): output video filename
+        pre_options(str): options appears before "-i <in_file>"
+    """
+    options = []
+    for k, v in kwargs.items():
+        if isinstance(v, bool):
+            if v:
+                options.append('-{}'.format(k))
+        elif k == 'log_level':
+            assert v in [
+                'quiet', 'panic', 'fatal', 'error', 'warning', 'info',
+                'verbose', 'debug', 'trace'
+            ]
+            options.append('-loglevel {}'.format(v))
+        else:
+            options.append('-{} {}'.format(k, v))
+    cmd = 'ffmpeg -y {} -i {} {} {}'.format(pre_options, in_file,
+                                            ' '.join(options), out_file)
+    print(cmd)
+    subprocess.call(cmd, shell=True)
+
+
+@check_ffmpeg
+def resize_video(in_file,
+                 out_file,
+                 size=None,
+                 ratio=None,
+                 keep_ar=False,
+                 log_level='info',
+                 **kwargs):
+    """Resize a video
+
+    Args:
+        in_file(str): input video filename
+        out_file(str): output video filename
+        size(tuple): expected (w, h), eg, (320, 240) or (320, -1)
+        ratio(tuple or float): expected resize ratio, (2, 0.5) means (w*2, h*0.5)
+        keep_ar(bool): whether to keep original aspect ratio
+        log_level(str): log level of ffmpeg
+    """
+    if size is None and ratio is None:
+        raise ValueError('expected size or ratio must be specified')
+    elif size is not None and ratio is not None:
+        raise ValueError('size and ratio cannot be specified at the same time')
+    options = {'log_level': log_level}
+    if size:
+        if not keep_ar:
+            options['vf'] = 'scale={}:{}'.format(size[0], size[1])
+        else:
+            options['vf'] = ('scale=w={}:h={}:force_original_aspect_ratio'
+                             '=decrease'.format(size[0], size[1]))
+    else:
+        if not isinstance(ratio, tuple):
+            ratio = (ratio, ratio)
+        options['vf'] = 'scale="trunc(iw*{}):trunc(ih*{})"'.format(
+            ratio[0], ratio[1])
+    convert_video(in_file, out_file, **options)
+
+
+@check_ffmpeg
 def cut_video(in_file,
               out_file,
               start=None,
               end=None,
               vcodec=None,
               acodec=None,
-              quiet=False):
+              log_level='info',
+              **kwargs):
     """Cut a clip from a video
 
     Args:
@@ -343,27 +428,29 @@ def cut_video(in_file,
         end(None or float): end time (in seconds)
         vcodec(None or str): output video codec, None for unchanged
         acodec(None or str): output audio codec, None for unchanged
-        quiet(bool): whether to print no information
+        log_level(str): log level of ffmpeg
     """
-    check_ffmpeg()
+    options = {'log_level': log_level}
     if vcodec is None:
-        vcodec = 'copy'
+        options['vcodec'] = 'copy'
     if acodec is None:
-        acodec = 'copy'
-    options = ['-vcodec ' + vcodec, '-acodec ' + acodec]
+        options['acodec'] = 'copy'
     if start:
-        options.append('-ss ' + str(start))
+        options['ss'] = start
     else:
         start = 0
     if end:
-        options.append('-t ' + str(end - start))
-    if quiet:
-        options.append('-v quiet')
-    cmd = 'ffmpeg -y -i {} {} {}'.format(in_file, ' '.join(options), out_file)
-    subprocess.call(cmd, shell=True)
+        options['t'] = end - start
+    convert_video(in_file, out_file, **options)
 
 
-def concat_video(video_list, out_file, vcodec=None, acodec=None, quiet=False):
+@check_ffmpeg
+def concat_video(video_list,
+                 out_file,
+                 vcodec=None,
+                 acodec=None,
+                 log_level='info',
+                 **kwargs):
     """Concatenate multiple videos into a single one
 
     Args:
@@ -371,19 +458,17 @@ def concat_video(video_list, out_file, vcodec=None, acodec=None, quiet=False):
         out_file(str): output video filename
         vcodec(None or str): output video codec, None for unchanged
         acodec(None or str): output audio codec, None for unchanged
-        quiet(bool): whether to print no information
+        log_level(str): log level of ffmpeg
     """
-    check_ffmpeg()
     _, tmp_filename = tempfile.mkstemp(suffix='.txt', text=True)
     with open(tmp_filename, 'w') as f:
         for filename in video_list:
             f.write('file {}\n'.format(path.abspath(filename)))
+    options = {'log_level': log_level}
     if vcodec is None:
-        vcodec = 'copy'
+        options['vcodec'] = 'copy'
     if acodec is None:
-        acodec = 'copy'
-    codecs = '-vcodec ' + vcodec + ' -acodec ' + acodec
-    cmd = 'ffmpeg -y -f concat -safe 0 -i {} {} {}'.format(
-        tmp_filename, codecs, out_file)
-    subprocess.call(cmd, shell=True)
+        options['acodec'] = 'copy'
+    convert_video(
+        tmp_filename, out_file, pre_options='-f concat -safe 0', **options)
     os.remove(tmp_filename)

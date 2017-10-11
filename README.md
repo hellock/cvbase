@@ -1,5 +1,11 @@
 # Introduction
 
+[![PyPI Version](https://img.shields.io/pypi/v/cvbase.svg)](https://pypi.python.org/pypi/cvbase)
+[![Python Version](https://img.shields.io/pypi/pyversions/cvbase.svg)]()
+[![Build Status](https://travis-ci.org/hellock/cvbase.svg?branch=master)](https://travis-ci.org/hellock/cvbase)
+[![Coverage Status](https://codecov.io/gh/hellock/cvbase/branch/master/graph/badge.svg)](https://codecov.io/gh/hellock/cvbase)
+
+
 `cvbase` is a miscellaneous set of tools which maybe helpful for computer vision research.
 It comprises the following parts.
 
@@ -133,3 +139,4 @@ There are some popular features such as progress visualization, timer, video to 
     ```python
     cvb.convert_video('input.avi', 'output.mp4', vcodec='h264')
     ```
+

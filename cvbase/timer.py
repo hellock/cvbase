@@ -9,6 +9,31 @@ class TimerError(Exception):
 
 
 class Timer(object):
+    """A flexible Timer class.
+
+    :Example:
+
+    >>> import time
+    >>> import cvbase as cvb
+    >>> with cvb.Timer():
+    >>>     # simulate a code block that will run for 1s
+    >>>     time.sleep(1)
+    1.000
+    >>> with cvb.Timer(print_tmpl='hey it taks {:.1f} seconds'):
+    >>>     # simulate a code block that will run for 1s
+    >>>     time.sleep(1)
+    hey it taks 1.0 seconds
+    >>> timer = cvb.Timer()
+    >>> time.sleep(0.5)
+    >>> print(timer.since_start())
+    0.500
+    >>> time.sleep(0.5)
+    >>> print(timer.since_last_check())
+    0.500
+    >>> print(timer.since_start())
+    1.000
+
+    """
 
     def __init__(self, start=True, print_tmpl=None):
         self._is_running = False
@@ -18,6 +43,7 @@ class Timer(object):
 
     @property
     def is_running(self):
+        """bool: indicate whether the timer is running"""
         return self._is_running
 
     def __enter__(self):
@@ -29,18 +55,29 @@ class Timer(object):
         self._is_running = False
 
     def start(self):
+        """Start the timer."""
         if not self._is_running:
             self._t_start = time()
             self._is_running = True
         self._t_last = time()
 
     def since_start(self):
+        """Total time since the timer is started.
+
+        Returns(float): the time in seconds
+        """
         if not self._is_running:
             raise TimerError('timer is not running')
         self._t_last = time()
         return self._t_last - self._t_start
 
     def since_last_check(self):
+        """Time since the last checking.
+
+        Either :func:`since_start` or :func:`since_last_check` is a checking operation.
+
+        Returns(float): the time in seconds
+        """
         if not self._is_running:
             raise TimerError('timer is not running')
         dur = time() - self._t_last
@@ -53,6 +90,22 @@ _g_timers = {}  # global timers
 
 def check_time(timer_id):
     """Add check points in a single line
+
+    This method is suitable for running a task on a list of items. A timer will
+    be registered when the method is called for the first time.
+
+    :Example:
+
+    >>> import time
+    >>> import cvbase as cvb
+    >>> for i in range(1, 6):
+    >>>     # simulate a code block
+    >>>     time.sleep(i)
+    >>>     cvb.check_time('task1')
+    2.000
+    3.000
+    4.000
+    5.000
 
     Args:
         timer_id(str): timer identifier

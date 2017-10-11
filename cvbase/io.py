@@ -87,6 +87,21 @@ def pickle_dump(obj, file=None, **kwargs):
 
 
 def load(file, format=None, **kwargs):
+    """Load contents from json/yaml/pickle files, and also supports
+    custom arguments for each file format.
+
+    This method provides a unified api for loading from serialized files.
+
+    Args:
+        file(str or file-like object): filename or the file-like object
+        format(None or str): if it is None, file format is inferred from the
+                             file extension, otherwise use the specified one.
+                             Currently supported formats are "json", "yaml",
+                             "yml", "pickle" and "pkl"
+
+    Returns:
+        The content from the file
+    """
     processors = {
         'json': json_load,
         'yaml': yaml_load,
@@ -102,6 +117,20 @@ def load(file, format=None, **kwargs):
 
 
 def dump(obj, file=None, format=None, **kwargs):
+    """Dump contents to json/yaml/pickle strings or files.
+
+    This method provides a unified api for dumping to files, and also supports
+    custom arguments for each file format.
+
+    Args:
+        file(None or str or file-like object): if None, then dump to a str,
+            otherwise to a file specified by the filename or file-like object
+        obj(any): the python object to be dumped
+        format(None or str): same as :func:`load`
+
+    Returns:
+        bool: True for success, False otherwise
+    """
     processors = {
         'json': json_dump,
         'yaml': yaml_dump,

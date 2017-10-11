@@ -1,41 +1,49 @@
 API
 ====
+
+
+io
+----------
 .. automodule:: cvbase.io
     :members:
-    :show-inheritance:
 
+conversion
+----------
 .. automodule:: cvbase.conversion
     :members:
-    :show-inheritance:
 
+image
+----------
 .. automodule:: cvbase.image
     :members:
-    :show-inheritance:
 
+video
+----------
 .. automodule:: cvbase.video
     :members:
-    :show-inheritance:
 
+timer
+----------
 .. automodule:: cvbase.timer
     :members:
-    :show-inheritance:
 
+progress
+----------
 .. automodule:: cvbase.progress
     :members:
-    :show-inheritance:
 
+visualize
+----------
 .. automodule:: cvbase.visualize
     :members:
-    :show-inheritance:
 
+det
+----------
 .. automodule:: cvbase.det.bbox_ops
     :members:
-    :show-inheritance:
 
 .. automodule:: cvbase.det.eval
     :members:
-    :show-inheritance:
 
 .. automodule:: cvbase.det.labels
     :members:
-    :show-inheritance:

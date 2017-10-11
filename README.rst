@@ -19,5 +19,5 @@ cvbase
 ``cvbase`` is a miscellaneous set of tools which maybe helpful for computer vision research.
 It comprises the following parts.
 
-Try and start with ``pip install cvbase``. The `documentation 
-<http://cvbase.readthedocs.io/en/latest>`_  is on going.
+Try and start with ``pip install cvbase``. See `documentation 
+<http://cvbase.readthedocs.io/en/latest>`_  for more features and usage.

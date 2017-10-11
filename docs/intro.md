@@ -86,5 +86,5 @@ There are some popular features such as progress visualization, timer, video to 
     ```python
     import cvbase as cvb
 
-    video = cvb.VideoReader('frame_dir', 'out_video_file.avi', fps=30)
+    video = cvb.frames2video('frame_dir', 'out_video_file.avi', fps=30)
     ```

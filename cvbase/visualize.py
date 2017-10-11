@@ -8,6 +8,10 @@ from cvbase.image import read_img, write_img
 
 
 class Color(Enum):
+    """Color associated with RGB values
+
+    8 colors in total: red, green, blue, cyan, yellow, magenta, white and black.
+    """
     red = (0, 0, 255)
     green = (0, 255, 0)
     blue = (255, 0, 0)
@@ -19,6 +23,13 @@ class Color(Enum):
 
 
 def show_img(img, win_name='', wait_time=0):
+    """Show an image
+
+    Args:
+        img(str or ndarray): the image to be shown
+        win_name(str): the window name
+        wait_time(int): value of waitKey param
+    """
     cv2.imshow(win_name, read_img(img))
     cv2.waitKey(wait_time)
 

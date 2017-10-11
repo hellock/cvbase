@@ -57,10 +57,15 @@ class ProgressBar(object):
 def track_progress(func, tasks, bar_width=50, **kwargs):
     """Track the progress of tasks execution with a progress bar
 
+    Tasks are done with a simple for-loop.
+
     Args:
-        func(function): the function to be applied to each task
+        func(callable): the function to be applied to each task
         tasks(tuple of 2 or list): a list of tasks
         bar_width(int): width of progress bar
+
+    Returns:
+        list: the results
     """
     if isinstance(tasks, tuple):
         assert len(tasks) == 2
@@ -102,6 +107,25 @@ def track_parallel_progress(func,
                             chunksize=1,
                             skip_first=False,
                             keep_order=True):
+    """Track the progress of parallel task execution with a progress bar
+
+    The built-in :mod:`multiprocessing` module is used for process pools and
+    tasks are done with :func:`Pool.map` or :func:`Pool.imap_unordered`.
+
+    Args:
+        func(callable): the function to be applied to each task
+        tasks(tuple of 2 or list): a list of tasks
+        process_num(int): the process(worker) number
+        initializer(None or callable): see :class:`multiprocessing.Pool` for details
+        initargs(None or tuple): see :class:`multiprocessing.Pool` for details
+        chunksize(int): see :class:`multiprocessing.Pool` for details
+        bar_width(int): width of progress bar
+        skip_first(bool): whether to skip the first sample when calculating fps
+        keep_order(bool): if True, :func:`Pool.imap` is used, otherwise :func:`Pool.imap_unordered` is used
+
+    Returns:
+        list: the results
+    """
     if isinstance(tasks, tuple):
         assert len(tasks) == 2
         assert isinstance(tasks[0], collections.Iterable)

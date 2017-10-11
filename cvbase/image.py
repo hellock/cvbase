@@ -346,7 +346,7 @@ def pad_img(img, shape, pad_val):
         shape(tuple): expected padding shape
         pad_val(float or int or list): values to be filled in padding areas
 
-    Outputs:
+    Returns:
         ndarray: padded image
     """
     if not isinstance(pad_val, (int, float)):

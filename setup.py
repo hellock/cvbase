@@ -9,8 +9,9 @@ if sys.version_info < (3, 4):
 
 
 def readme():
-    with open('README.rst') as f:
-        return f.read()
+    with open('README.md') as f:
+        content = f.read()
+    return content
 
 
 def get_version():

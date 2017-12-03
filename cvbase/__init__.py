@@ -26,7 +26,10 @@ def set_backend(name):
     global backend
     backend = name
     if 'cvbase.image' in sys.modules:
-        importlib.reload(sys.modules['cvbase.image'])
+        if sys.version_info > (3, 4):
+            importlib.reload(sys.modules['cvbase.image'])
+        else:
+            reload(sys.modules['cvbase.image'])
 
 
 def opencv_installed():

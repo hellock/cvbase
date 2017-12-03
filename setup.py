@@ -2,7 +2,7 @@ import sys
 from setuptools import find_packages, setup
 
 install_requires = [
-    'numpy>=1.11.1', 'matplotlib', 'pyyaml', 'six', 'terminaltables'
+    'numpy>=1.11.1', 'matplotlib', 'pillow', 'pyyaml', 'six', 'terminaltables'
 ]
 if sys.version_info < (3, 4):
     install_requires.append('enum34')

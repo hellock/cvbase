@@ -10,10 +10,8 @@ from cvbase.opencv import IMREAD_COLOR, INTER_LINEAR
 
 def read_img(img_or_path, flag=IMREAD_COLOR):
     """Read an image
-
     Args:
         img_or_path(ndarray or str): either an image or path of an image
-
     Returns:
         ndarray: image array
     """
@@ -29,10 +27,8 @@ def read_img(img_or_path, flag=IMREAD_COLOR):
 
 def img_from_bytes(content, flag=IMREAD_COLOR):
     """Read an image from bytes
-
     Args:
         content(bytes): images bytes got from files or other streams
-
     Returns:
         ndarray: image array
     """
@@ -43,14 +39,12 @@ def img_from_bytes(content, flag=IMREAD_COLOR):
 
 def write_img(img, file_path, params=None, auto_mkdir=True):
     """Write image to file
-
     Args:
         img(ndarray): image to be written to file
         file_path(str): file path
         params(None or list): same as opencv imwrite interface
         auto_mkdir(bool): if the parrent folder of file_path does not exist,
                           whether to create it automatically
-
     Returns:
         bool: successful or not
     """
@@ -62,12 +56,10 @@ def write_img(img, file_path, params=None, auto_mkdir=True):
 
 def bgr2gray(img, keepdim=False):
     """Convert a BGR image to grayscale image
-
     Args:
         img(ndarray or str): either an image or path of an image
         keepdim(bool): if set to False(by default), return the gray image
                        with 2 dims, otherwise 3 dims.
-
     Returns:
         ndarray: the grayscale image
     """
@@ -80,10 +72,8 @@ def bgr2gray(img, keepdim=False):
 
 def gray2bgr(img):
     """Convert a grayscale image to BGR image
-
     Args:
         img(ndarray or str): either an image or path of an image
-
     Returns:
         ndarray: the BGR image
     """
@@ -97,10 +87,8 @@ def gray2bgr(img):
 
 def bgr2rgb(img):
     """Convert a BGR image to RGB image
-
     Args:
         img(ndarray or str): either an image or path of an image
-
     Returns:
         ndarray: the RGB image
     """
@@ -111,10 +99,8 @@ def bgr2rgb(img):
 
 def rgb2bgr(img):
     """Convert a RGB image to BGR image
-
     Args:
         img(ndarray or str): either an image or path of an image
-
     Returns:
         ndarray: the BGR image
     """
@@ -125,10 +111,8 @@ def rgb2bgr(img):
 
 def bgr2hsv(img):
     """Convert a BGR image to HSV image
-
     Args:
         img(ndarray or str): either an image or path of an image
-
     Returns:
         ndarray: the HSV image
     """
@@ -139,10 +123,8 @@ def bgr2hsv(img):
 
 def hsv2bgr(img):
     """Convert a HSV image to BGR image
-
     Args:
         img(ndarray or str): either an image or path of an image
-
     Returns:
         ndarray: the BGR image
     """
@@ -153,14 +135,11 @@ def hsv2bgr(img):
 
 def scale_size(size, scale):
     """Scale a size
-
     Args:
         size(tuple): w, h
         scale(float): scaling factor
-
     Returns:
         tuple: scaled size
-
     """
     w, h = size
     return int(w * float(scale) + 0.5), int(h * float(scale) + 0.5)
@@ -168,13 +147,11 @@ def scale_size(size, scale):
 
 def resize(img, size, return_scale=False, interpolation=INTER_LINEAR):
     """Resize image by expected size
-
     Args:
         img(ndarray): image or image path
         size(tuple): (w, h)
         return_scale(bool): whether to return w_scale and h_scale
         interpolation(enum): interpolation method
-
     Returns:
         ndarray: resized image
     """
@@ -191,13 +168,11 @@ def resize(img, size, return_scale=False, interpolation=INTER_LINEAR):
 
 def resize_like(img, dst_img, return_scale=False, interpolation=INTER_LINEAR):
     """Resize image to the same size of a given image
-
     Args:
         img(ndarray): image or image path
         dst_img(ndarray): the given image with expected size
         return_scale(bool): whether to return w_scale and h_scale
         interpolation(enum): interpolation method
-
     Returns:
         ndarray: resized image
     """
@@ -207,12 +182,10 @@ def resize_like(img, dst_img, return_scale=False, interpolation=INTER_LINEAR):
 
 def resize_by_ratio(img, ratio, interpolation=INTER_LINEAR):
     """Resize image by a ratio
-
     Args:
         img(ndarray): image or image path
         ratio(float): scale factor
         interpolation(enum): interpolation method
-
     Returns:
         ndarray: resized image
     """
@@ -229,17 +202,14 @@ def resize_keep_ar(img,
                    return_scale=False,
                    interpolation=INTER_LINEAR):
     """Resize image with aspect ratio unchanged
-
     The long edge of resized image is no greater than max_long_edge, the short
     edge of resized image is no greater than max_short_edge.
-
     Args:
         img(ndarray): image or image path
         max_long_edge(int): max value of the long edge of resized image
         max_short_edge(int): max value of the short edge of resized image
         return_scale(bool): whether to return scale besides the resized image
         interpolation(enum): interpolation method
-
     Returns:
         tuple: (resized image, scale factor)
     """
@@ -260,15 +230,12 @@ def resize_keep_ar(img,
 
 def limit_size(img, max_edge, return_scale=False, interpolation=INTER_LINEAR):
     """Limit the size of an image
-
     If the long edge of the image is greater than max_edge, resize the image
-
     Args:
         img(ndarray): input image
         max_edge(int): max value of long edge
         return_scale(bool): whether to return scale besides the resized image
         interpolation(enum): interpolation method
-
     Returns:
         tuple: (resized image, scale factor)
     """
@@ -289,15 +256,12 @@ def limit_size(img, max_edge, return_scale=False, interpolation=INTER_LINEAR):
 
 def crop_img(img, bboxes, scale_ratio=1.0, pad_fill=None):
     """Crop image patches
-
     3 steps: scale the bboxes -> clip bboxes -> crop and pad
-
     Args:
         img(ndarray): image to be cropped
         bboxes(ndarray): shape (k, 4) or (4, ), location of cropped bboxes
         scale_ratio(float): scale ratio of bboxes, default by 1.0 (no scaling)
         pad_fill(number or list): value to be filled for padding, None for no padding
-
     Returns:
         list or ndarray: cropped image patches
     """
@@ -340,12 +304,10 @@ def crop_img(img, bboxes, scale_ratio=1.0, pad_fill=None):
 
 def pad_img(img, shape, pad_val):
     """Pad an image to a certain shape
-
     Args:
         img(ndarray): image to be padded
         shape(tuple): expected padding shape
         pad_val(float or int or list): values to be filled in padding areas
-
     Returns:
         ndarray: padded image
     """

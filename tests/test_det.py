@@ -105,7 +105,7 @@ class TestBboxTransform(object):
             decimal=5)
 
     def test_bboxes_clip(self):
-        img_size = (768, 1024)
+        img_size = (1024, 768)
         # bbox of all valid values
         bbox1 = np.array([50, 100, 900, 700])
         gt1 = np.array([50, 100, 900, 700])
@@ -211,12 +211,12 @@ class TestBboxTransform(object):
         scaled1 = cvb.bbox_scaling(bboxes, 1.8)
         gt1 = np.array([[-100, -180, 799, 1079], [-40, -40, 139, 139]])
         assert_array_equal(scaled1, gt1)
-        scaled2 = cvb.bbox_scaling(bboxes, 1.8, clip_shape=(600, 1000))
+        scaled2 = cvb.bbox_scaling(bboxes, 1.8, clip_size=(1000, 600))
         gt2 = np.array([[0, 0, 799, 599], [0, 0, 139, 139]])
         assert_array_equal(scaled2, gt2)
         bboxes_3d = np.stack((bboxes, bboxes), axis=0)
         gt_3d = np.stack((gt2, gt2), axis=0)
-        scaled_3d = cvb.bbox_scaling(bboxes_3d, 1.8, clip_shape=(600, 1000))
+        scaled_3d = cvb.bbox_scaling(bboxes_3d, 1.8, clip_size=(1000, 600))
         assert_array_equal(scaled_3d, gt_3d)
 
     def test_bbox_perturb(self):
@@ -228,7 +228,7 @@ class TestBboxTransform(object):
         for i in range(4):
             assert np.all((p_bboxes[:, i] >= bbox[i] * (1 - ratio)) &
                           (p_bboxes[:, i] < bbox[i] * (1 + ratio)))
-        p_bboxes = cvb.bbox_perturb(bbox, 0.2, num, clip_shape=(205, 205))
+        p_bboxes = cvb.bbox_perturb(bbox, 0.2, num, clip_size=(205, 205))
         for i in range(4):
             assert np.all((p_bboxes[:, i] >= bbox[i] * (1 - ratio)) &
                           (p_bboxes[:, i] <= min(bbox[i] * (1 + ratio), 204)))

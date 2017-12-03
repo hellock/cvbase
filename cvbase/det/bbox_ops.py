@@ -191,23 +191,23 @@ def bbox_transform_inv(bboxes, deltas, means=[0, 0, 0, 0], stds=[1, 1, 1, 1]):
         axis=-1).reshape(tuple(shape))
 
 
-def bbox_clip(bboxes, img_shape):
+def bbox_clip(bboxes, img_size):
     """Limit bboxes to fit the image size
 
     Args:
         bboxes(ndarray): shape (..., 4*k)
-        img_shape(tuple): (height, width)
+        img_size(tuple): (width, height)
     """
     assert bboxes.shape[-1] % 4 == 0
     cliped_bboxes = np.empty_like(bboxes, dtype=bboxes.dtype)
     cliped_bboxes[..., 0::4] = np.maximum(
-        np.minimum(bboxes[..., 0::4], img_shape[1] - 1), 0)
+        np.minimum(bboxes[..., 0::4], img_size[0] - 1), 0)
     cliped_bboxes[..., 1::4] = np.maximum(
-        np.minimum(bboxes[..., 1::4], img_shape[0] - 1), 0)
+        np.minimum(bboxes[..., 1::4], img_size[1] - 1), 0)
     cliped_bboxes[..., 2::4] = np.maximum(
-        np.minimum(bboxes[..., 2::4], img_shape[1] - 1), 0)
+        np.minimum(bboxes[..., 2::4], img_size[0] - 1), 0)
     cliped_bboxes[..., 3::4] = np.maximum(
-        np.minimum(bboxes[..., 3::4], img_shape[0] - 1), 0)
+        np.minimum(bboxes[..., 3::4], img_size[1] - 1), 0)
     return cliped_bboxes
 
 
@@ -226,13 +226,13 @@ def bbox_flip(bboxes, img_shape):
     return flipped
 
 
-def bbox_scaling(bboxes, scale, clip_shape=None):
+def bbox_scaling(bboxes, scale, clip_size=None):
     """Scaling bboxes and clip the boundary(optional)
 
     Args:
         bboxes(ndarray): shape(..., 4)
         scale(float): scaling factor
-        clip(None or tuple): (h, w)
+        clip_size(None or tuple): (w, h)
 
     Returns:
         ndarray: scaled bboxes
@@ -245,8 +245,8 @@ def bbox_scaling(bboxes, scale, clip_shape=None):
         dw = (w * (scale - 1)) * 0.5
         dh = (h * (scale - 1)) * 0.5
         scaled_bboxes = bboxes + np.stack((-dw, -dh, dw, dh), axis=-1)
-    if clip_shape is not None:
-        return bbox_clip(scaled_bboxes, clip_shape)
+    if clip_size is not None:
+        return bbox_clip(scaled_bboxes, clip_size)
     else:
         return scaled_bboxes
 
@@ -254,7 +254,7 @@ def bbox_scaling(bboxes, scale, clip_shape=None):
 def bbox_perturb(bbox,
                  offset_ratio,
                  num,
-                 clip_shape=None,
+                 clip_size=None,
                  min_iou=None,
                  max_iou=None,
                  max_try=20):
@@ -264,7 +264,7 @@ def bbox_perturb(bbox,
         bbox(ndarray): shape(4,)
         offset_ratio(float): max offset ratio (w.r.t the bbox w and h)
         num(int): number of bboxes to be generated
-        clip_shape(None or tuple): (h, w)
+        clip_size(None or tuple): (h, w)
         min_iou(float): minimum iou of perturbed bboxes with original bbox
         max_iou(float): maximum iou of perturbed bboxes with original bbox
 
@@ -280,8 +280,8 @@ def bbox_perturb(bbox,
     for i in range(4):
         p_bboxes[:, i] = np.random.uniform(
             bbox[i] - max_offset[i], bbox[i] + max_offset[i], num_relaxed)
-    if clip_shape:
-        p_bboxes = bbox_clip(p_bboxes, clip_shape)
+    if clip_size:
+        p_bboxes = bbox_clip(p_bboxes, clip_size)
     inds_valid = (p_bboxes[:, 0] < p_bboxes[:, 2]) & (p_bboxes[:, 1] <
                                                       p_bboxes[:, 3])
     p_bboxes = p_bboxes[inds_valid, :]
@@ -294,7 +294,7 @@ def bbox_perturb(bbox,
     if p_bboxes.shape[0] < num:
         if max_try > 1:
             extra_bboxes = bbox_perturb(bbox, offset_ratio,
-                                        num - p_bboxes.shape[0], clip_shape,
+                                        num - p_bboxes.shape[0], clip_size,
                                         min_iou, max_iou, max_try - 1)
             return np.vstack((p_bboxes, extra_bboxes))
         else:

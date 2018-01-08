@@ -2,6 +2,7 @@ from os import path
 
 import cv2
 import numpy as np
+import six
 
 from cvbase.det import bbox_clip, bbox_scaling
 from cvbase.io import check_file_exist, mkdir_or_exist
@@ -19,7 +20,7 @@ def read_img(img_or_path, flag=IMREAD_COLOR):
     """
     if isinstance(img_or_path, np.ndarray):
         return img_or_path
-    elif isinstance(img_or_path, str):
+    elif isinstance(img_or_path, six.string_types):
         check_file_exist(img_or_path,
                          'img file does not exist: {}'.format(img_or_path))
         return cv2.imread(img_or_path, flag)

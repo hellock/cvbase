@@ -17,8 +17,9 @@ class ProgressBar(object):
             self.bar_width = min(
                 int(terminal_width * 0.6), terminal_width - 50)
             if self.bar_width < 10:
-                print('terminal width is too small, please consider widen '
-                      'the terminal for better progressbar visualization')
+                print('terminal width is too small ({}), please consider '
+                      'widen the terminal for better progressbar '
+                      'visualization'.format(terminal_width))
                 self.bar_width = 10
         self.completed = 0
         if start:

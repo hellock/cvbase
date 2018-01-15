@@ -14,6 +14,7 @@ def read_img(img_or_path, flag=IMREAD_COLOR):
 
     Args:
         img_or_path(ndarray or str): either an image or path of an image
+        flag(int): flags specifying the color type of a loaded image
 
     Returns:
         ndarray: image array
@@ -33,6 +34,7 @@ def img_from_bytes(content, flag=IMREAD_COLOR):
 
     Args:
         content(bytes): images bytes got from files or other streams
+        flag(int): same as :func:`read_img`
 
     Returns:
         ndarray: image array

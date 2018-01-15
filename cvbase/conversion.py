@@ -7,6 +7,16 @@ def list_cast(in_list, dst_type):
     return list(map(dst_type, in_list))
 
 
+def is_list_of(in_list, expected_type):
+    """Check whether it is a list of objects of a certain type"""
+    if not isinstance(in_list, list):
+        return False
+    for item in in_list:
+        if not isinstance(item, expected_type):
+            return False
+    return True
+
+
 def to_bool(var):
     """Convert a variable to bool type"""
     if isinstance(var, str):

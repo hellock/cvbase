@@ -12,6 +12,13 @@ def test_list_cast():
         cvb.list_cast(1, str)
 
 
+def test_is_list_of():
+    assert cvb.is_list_of([1.0, 2.0, 3.0], float)
+    assert cvb.is_list_of([(1, ), (2, ), (3, )], tuple)
+    assert not cvb.is_list_of([1.0, 2, 3], int)
+    assert not cvb.is_list_of((1.0, 2, 3), int)
+
+
 def test_to_bool():
     for var in ['false', 'False', '', False, 0]:
         assert cvb.to_bool(var) is False

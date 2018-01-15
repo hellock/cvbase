@@ -108,8 +108,8 @@ class TestImage(object):
         assert resized_img.shape == (600, 1000, 3)
         resized_img, w_scale, h_scale = cvb.resize(self.img_path, (1000, 600),
                                                    True)
-        assert (resized_img.shape == (600, 1000, 3) and w_scale == 2.5 and
-                h_scale == 2.0)
+        assert (resized_img.shape == (600, 1000, 3) and w_scale == 2.5
+                and h_scale == 2.0)
         for mode in [
                 cvb.INTER_NEAREST, cvb.INTER_LINEAR, cvb.INTER_CUBIC,
                 cvb.INTER_AREA, cvb.INTER_LANCZOS4

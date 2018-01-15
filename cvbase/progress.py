@@ -1,5 +1,4 @@
 import collections
-import subprocess
 import sys
 from multiprocessing import Pool
 
@@ -15,16 +14,23 @@ class ProgressBar(object):
         if bar_width < terminal_width:
             self.bar_width = bar_width
         else:
-            self.bar_width = int(terminal_width * 2.0 / 3)
+            self.bar_width = min(
+                int(terminal_width * 0.6), terminal_width - 50)
+            if self.bar_width < 10:
+                print('terminal width is too small, please consider widen '
+                      'the terminal for better progressbar visualization')
+                self.bar_width = 10
         self.completed = 0
         if start:
             self.start()
 
     def _get_terminal_width(self):
-        ret = subprocess.check_output('tput cols', shell=True)
-        if isinstance(ret, bytes):  # python 3
-            ret = ret.decode()
-        return int(ret.rstrip('\n'))
+        if sys.version_info > (3, 3):
+            from shutil import get_terminal_size
+        else:
+            from backports.shutil_get_terminal_size import get_terminal_size
+        w, _ = get_terminal_size()
+        return w
 
     def start(self):
         if self.task_num > 0:

@@ -4,6 +4,8 @@ from setuptools import find_packages, setup
 install_requires = [
     'numpy>=1.11.1', 'matplotlib', 'pyyaml', 'six', 'terminaltables'
 ]
+if sys.version_info < (3, 3):
+    install_requires.append('backports.shutil_get_terminal_size')
 if sys.version_info < (3, 4):
     install_requires.append('enum34')
 

@@ -1,9 +1,7 @@
 import sys
 from setuptools import find_packages, setup
 
-install_requires = [
-    'numpy>=1.11.1', 'matplotlib', 'pyyaml', 'six', 'terminaltables'
-]
+install_requires = ['numpy>=1.11.1', 'pyyaml', 'six', 'terminaltables']
 if sys.version_info < (3, 3):
     install_requires.append('backports.shutil_get_terminal_size')
 if sys.version_info < (3, 4):
@@ -31,7 +29,7 @@ setup(
     keywords='computer vision',
     packages=find_packages(),
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2',

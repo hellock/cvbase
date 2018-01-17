@@ -1,4 +1,5 @@
 from .conversion import *
+from .decorators import *
 from .det import *
 from .io import *
 from .progress import *

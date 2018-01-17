@@ -1,8 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from six.moves import zip
 from terminaltables import AsciiTable
 
+from cvbase.decorators import requires_package
 from cvbase.det.bbox_ops import bbox_overlaps
 from cvbase.det.labels import read_labels
 
@@ -138,6 +138,7 @@ def print_recall_summary(recalls,
     print(table.table)
 
 
+@requires_package('matplotlib')
 def plot_num_recall(recalls, proposal_nums):
     """Plot Proposal_num-Recalls curve
 
@@ -154,6 +155,7 @@ def plot_num_recall(recalls, proposal_nums):
     else:
         _recalls = recalls
 
+    import matplotlib.pyplot as plt
     f = plt.figure()
     plt.plot([0] + _proposal_nums, [0] + _recalls)
     plt.xlabel('Proposal num')
@@ -162,6 +164,7 @@ def plot_num_recall(recalls, proposal_nums):
     f.show()
 
 
+@requires_package('matplotlib')
 def plot_iou_recall(recalls, iou_thrs):
     """Plot IoU-Recalls curve
 
@@ -178,6 +181,7 @@ def plot_iou_recall(recalls, iou_thrs):
     else:
         _recalls = recalls
 
+    import matplotlib.pyplot as plt
     f = plt.figure()
     plt.plot(_iou_thrs + [1.0], _recalls + [0.])
     plt.xlabel('IoU')

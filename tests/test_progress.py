@@ -6,43 +6,45 @@ import cvbase as cvb
 class TestProgressBar(object):
 
     def test_start(self, capsys):
+        bar_width = 20
         # without total task num
-        prog_bar = cvb.ProgressBar()
+        prog_bar = cvb.ProgressBar(bar_width=bar_width)
         out, _ = capsys.readouterr()
         assert out == 'completed: 0, elapsed: 0s'
-        prog_bar = cvb.ProgressBar(start=False)
+        prog_bar = cvb.ProgressBar(bar_width=bar_width, start=False)
         out, _ = capsys.readouterr()
         assert out == ''
         prog_bar.start()
         out, _ = capsys.readouterr()
         assert out == 'completed: 0, elapsed: 0s'
         # with total task num
-        prog_bar = cvb.ProgressBar(10)
+        prog_bar = cvb.ProgressBar(10, bar_width=bar_width)
         out, _ = capsys.readouterr()
-        assert out == '[{}] 0/10, elapsed: 0s, ETA:'.format(' ' * 50)
-        prog_bar = cvb.ProgressBar(10, start=False)
+        assert out == '[{}] 0/10, elapsed: 0s, ETA:'.format(' ' * bar_width)
+        prog_bar = cvb.ProgressBar(10, bar_width=bar_width, start=False)
         out, _ = capsys.readouterr()
         assert out == ''
         prog_bar.start()
         out, _ = capsys.readouterr()
-        assert out == '[{}] 0/10, elapsed: 0s, ETA:'.format(' ' * 50)
+        assert out == '[{}] 0/10, elapsed: 0s, ETA:'.format(' ' * bar_width)
 
     def test_update(self, capsys):
+        bar_width = 20
         # without total task num
-        prog_bar = cvb.ProgressBar()
+        prog_bar = cvb.ProgressBar(bar_width=bar_width)
         capsys.readouterr()
         time.sleep(1)
         prog_bar.update()
         out, _ = capsys.readouterr()
         assert out == 'completed: 1, elapsed: 1s, 1.0 tasks/s'
         # with total task num
-        prog_bar = cvb.ProgressBar(10)
+        prog_bar = cvb.ProgressBar(10, bar_width=bar_width)
         capsys.readouterr()
         time.sleep(1)
         prog_bar.update()
         out, _ = capsys.readouterr()
         assert out == ('\r[{}] 1/10, 1.0 task/s, elapsed: 1s, ETA:     9s'.
-                       format('>' * 5 + ' ' * 45))
+                       format('>' * 2 + ' ' * 18))
 
 
 def sleep_1s(num):

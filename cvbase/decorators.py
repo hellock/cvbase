@@ -14,7 +14,7 @@ def requires_package(package):
             for p in required_packages:
                 try:
                     import_module(p)
-                except ModuleNotFoundError:
+                except:
                     missing.append(p)
             if missing:
                 print('Package "{}" is required in method "{}" but not found'

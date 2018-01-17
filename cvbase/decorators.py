@@ -20,6 +20,7 @@ def requires_package(package):
                 print('Package "{}" is required in method "{}" but not found'
                       ', please install the missing packages first.'.format(
                           ', '.join(missing), func.__name__))
+                raise ImportError
             else:
                 return func(*args, **kwargs)
 

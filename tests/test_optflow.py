@@ -13,6 +13,8 @@ def test_read_flow():
     flow_file = osp.join(osp.dirname(__file__), 'data/optflow.flo')
     flow = cvb.read_flow(flow_file)
     assert flow.ndim == 3 and flow.shape[-1] == 2
+    flow_same = cvb.read_flow(flow)
+    assert_array_equal(flow, flow_same)
     with pytest.raises(IOError):
         cvb.read_flow(osp.join(osp.dirname(__file__), 'data/color.jpg'))
     with pytest.raises(ValueError):

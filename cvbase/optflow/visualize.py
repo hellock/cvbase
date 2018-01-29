@@ -61,7 +61,7 @@ def flow2rgb(flow, color_wheel=None, unknown_thr=1e6):
     bin_real = (angle + 1) / 2 * (num_bins - 1)
     bin_left = np.floor(bin_real).astype(int)
     bin_right = (bin_left + 1) % num_bins
-    w = (bin_real - bin_left)[..., None]
+    w = (bin_real - bin_left.astype(np.float32))[..., None]
     flow_img = (
         1 - w) * color_wheel[bin_left, :] + w * color_wheel[bin_right, :]
     small_ind = rad <= 1

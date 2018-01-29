@@ -16,6 +16,13 @@ class TestImage(object):
         cls.gray_img_path = path.join(
             path.dirname(__file__), 'data/grayscale.jpg')
 
+    def assert_img_equal(self, img, ref_img, ratio_thr=0.999):
+        assert img.shape == ref_img.shape
+        assert img.dtype == ref_img.dtype
+        area = ref_img.shape[0] * ref_img.shape[1]
+        diff = np.abs(img.astype('int32') - ref_img.astype('int32'))
+        assert np.sum(diff <= 1) / float(area) > ratio_thr
+
     def test_read_img(self):
         img = cvb.read_img(self.img_path)
         assert img.shape == (300, 400, 3)
@@ -178,29 +185,29 @@ class TestImage(object):
         assert patch.shape == (100, 100, 3)
         patch_path = path.join(path.dirname(__file__), 'data/patches')
         ref_patch = np.load(patch_path + '/0.npy')
-        assert_array_equal(patch, ref_patch)
+        self.assert_img_equal(patch, ref_patch)
         assert isinstance(patches, list) and len(patches) == 1
-        assert_array_equal(patches[0], ref_patch)
+        self.assert_img_equal(patches[0], ref_patch)
         # crop with no scaling and padding
         patches = cvb.crop_img(img, bboxes)
         assert len(patches) == bboxes.shape[0]
         for i in range(len(patches)):
             ref_patch = np.load(patch_path + '/{}.npy'.format(i))
-            assert_array_equal(patches[i], ref_patch)
+            self.assert_img_equal(patches[i], ref_patch)
         # crop with scaling and no padding
         patches = cvb.crop_img(img, bboxes, 1.2)
         for i in range(len(patches)):
             ref_patch = np.load(patch_path + '/scale_{}.npy'.format(i))
-            assert_array_equal(patches[i], ref_patch)
+            self.assert_img_equal(patches[i], ref_patch)
         # crop with scaling and padding
         patches = cvb.crop_img(img, bboxes, 1.2, pad_fill=[255, 255, 0])
         for i in range(len(patches)):
             ref_patch = np.load(patch_path + '/pad_{}.npy'.format(i))
-            assert_array_equal(patches[i], ref_patch)
+            self.assert_img_equal(patches[i], ref_patch)
         patches = cvb.crop_img(img, bboxes, 1.2, pad_fill=0)
         for i in range(len(patches)):
             ref_patch = np.load(patch_path + '/pad0_{}.npy'.format(i))
-            assert_array_equal(patches[i], ref_patch)
+            self.assert_img_equal(patches[i], ref_patch)
 
     def test_pad_img(self):
         img = np.random.rand(10, 10, 3).astype(np.float32)

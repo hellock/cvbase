@@ -1,5 +1,6 @@
 import sys
-from os import makedirs, path, remove, removedirs
+import os.path as osp
+from os import listdir, makedirs, path, remove, removedirs
 
 import cvbase as cvb
 import pytest
@@ -157,10 +158,10 @@ def test_check_file_exist():
 
 
 def test_scandir():
+
     folder = path.join(path.dirname(__file__), 'data')
     assert set(cvb.scandir(folder)) == set([
-        'filelist.txt', 'kv_pair.txt', 'voc_labels.txt', 'color.jpg',
-        'grayscale.jpg', 'test.mp4'
+        item for item in listdir(folder) if osp.isfile(osp.join(folder, item))
     ])
     assert set(cvb.scandir(folder, '.txt')) == set(
         ['filelist.txt', 'kv_pair.txt', 'voc_labels.txt'])

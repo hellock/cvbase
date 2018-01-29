@@ -47,3 +47,10 @@ det
 
 .. automodule:: cvbase.det.labels
     :members:
+
+optflow
+----------
+.. automodule:: cvbase.optflow.io
+    :members:
+.. automodule:: cvbase.optflow.visualize
+    :members:

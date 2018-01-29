@@ -1,11 +1,14 @@
 from .conversion import *
 from .decorators import *
-from .det import *
 from .io import *
 from .progress import *
 from .timer import *
 from .version import __version__
-# require opencv
+
+from .det import *
+from .optflow import *
+
+# requires opencv
 try:
     from .image import *
     from .opencv import *

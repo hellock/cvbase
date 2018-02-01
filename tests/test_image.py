@@ -104,7 +104,7 @@ class TestImage(object):
                 if h < 0:
                     h += 360
                 computed_hsv[i, j, :] = [h, s, v]
-        assert_array_almost_equal(out_img, computed_hsv, decimal=3)
+        assert_array_almost_equal(out_img, computed_hsv, decimal=2)
 
     def test_scale_size(self):
         assert cvb.scale_size((300, 200), 0.5) == (150, 100)

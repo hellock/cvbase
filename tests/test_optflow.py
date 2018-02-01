@@ -10,11 +10,15 @@ import cvbase as cvb
 
 
 def test_read_flow():
-    flow_file = osp.join(osp.dirname(__file__), 'data/optflow.flo')
-    flow = cvb.read_flow(flow_file)
+    flow = cvb.read_flow(osp.join(osp.dirname(__file__), 'data/optflow.flo'))
     assert flow.ndim == 3 and flow.shape[-1] == 2
     flow_same = cvb.read_flow(flow)
     assert_array_equal(flow, flow_same)
+    flow = cvb.read_flow(
+        osp.join(osp.dirname(__file__), 'data/optflow.jpg'),
+        quantize=True,
+        denorm=True)
+    assert flow.ndim == 3 and flow.shape[-1] == 2
     with pytest.raises(IOError):
         cvb.read_flow(osp.join(osp.dirname(__file__), 'data/color.jpg'))
     with pytest.raises(ValueError):
@@ -25,11 +29,68 @@ def test_read_flow():
 
 def test_write_flow():
     flow = np.random.rand(100, 100, 2).astype(np.float32)
+    # write to a .flo file
     _, filename = tempfile.mkstemp()
     cvb.write_flow(flow, filename)
     flow_from_file = cvb.read_flow(filename)
     assert_array_equal(flow, flow_from_file)
     os.remove(filename)
+    # write to two .jpg files
+    tmp_dir = tempfile.gettempdir()
+    cvb.write_flow(flow, osp.join(tmp_dir, 'test_flow.jpg'), quantize=True)
+    assert osp.isfile(osp.join(tmp_dir, 'test_flow_dx.jpg'))
+    assert osp.isfile(osp.join(tmp_dir, 'test_flow_dy.jpg'))
+    os.remove(osp.join(tmp_dir, 'test_flow_dx.jpg'))
+    os.remove(osp.join(tmp_dir, 'test_flow_dy.jpg'))
+
+
+def test_quantize_flow():
+    flow = (np.random.rand(10, 8, 2).astype(np.float32) - 0.5) * 15
+    max_val = 5.0
+    dx, dy = cvb.quantize_flow(flow, max_val=max_val, norm=False)
+    ref = np.zeros_like(flow, dtype=np.uint8)
+    for i in range(ref.shape[0]):
+        for j in range(ref.shape[1]):
+            for k in range(ref.shape[2]):
+                val = flow[i, j, k] + max_val
+                val = min(max(val, 0), 2 * max_val)
+                ref[i, j, k] = np.round(255 * val / (2 * max_val))
+    assert_array_equal(dx, ref[..., 0])
+    assert_array_equal(dy, ref[..., 1])
+    max_val = 0.5
+    dx, dy = cvb.quantize_flow(flow, max_val=max_val, norm=True)
+    ref = np.zeros_like(flow, dtype=np.uint8)
+    for i in range(ref.shape[0]):
+        for j in range(ref.shape[1]):
+            for k in range(ref.shape[2]):
+                scale = flow.shape[1] if k == 0 else flow.shape[0]
+                val = flow[i, j, k] / scale + max_val
+                val = min(max(val, 0), 2 * max_val)
+                ref[i, j, k] = np.round(255 * val / (2 * max_val))
+    assert_array_equal(dx, ref[..., 0])
+    assert_array_equal(dy, ref[..., 1])
+
+
+def test_dequantize_flow():
+    dx = np.random.randint(256, size=(10, 8), dtype=np.uint8)
+    dy = np.random.randint(256, size=(10, 8), dtype=np.uint8)
+    max_val = 5.0
+    flow = cvb.dequantize_flow(dx, dy, max_val=max_val, denorm=False)
+    ref = np.zeros_like(flow, dtype=np.float32)
+    for i in range(ref.shape[0]):
+        for j in range(ref.shape[1]):
+            ref[i, j, 0] = float(dx[i, j]) * 2 * max_val / 255 - max_val
+            ref[i, j, 1] = float(dy[i, j]) * 2 * max_val / 255 - max_val
+    assert_array_almost_equal(flow, ref)
+    max_val = 0.5
+    flow = cvb.dequantize_flow(dx, dy, max_val=max_val, denorm=True)
+    h, w = dx.shape
+    ref = np.zeros_like(flow, dtype=np.float32)
+    for i in range(ref.shape[0]):
+        for j in range(ref.shape[1]):
+            ref[i, j, 0] = (float(dx[i, j]) * 2 * max_val / 255 - max_val) * w
+            ref[i, j, 1] = (float(dy[i, j]) * 2 * max_val / 255 - max_val) * h
+    assert_array_almost_equal(flow, ref)
 
 
 def test_flow2rgb():

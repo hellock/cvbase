@@ -35,7 +35,7 @@ import cvbase
 extensions = [
     'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode'
 ]
-autodoc_mock_imports = ['cv2']
+autodoc_mock_imports = ['cv2', 'enum']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

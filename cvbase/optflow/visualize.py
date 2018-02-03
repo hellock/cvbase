@@ -2,11 +2,10 @@ from __future__ import division
 
 import numpy as np
 
-from cvbase.image import rgb2bgr
-from cvbase.visualize import show_img
-from cvbase.optflow.io import read_flow
+from cvbase.decorators import requires_package
 
 
+@requires_package('cv2')
 def show_flow(flow, win_name='', wait_time=0):
     """Show optical flow
 
@@ -15,6 +14,9 @@ def show_flow(flow, win_name='', wait_time=0):
         win_name(str): the window name
         wait_time(int): value of waitKey param
     """
+    from cvbase.image import rgb2bgr
+    from cvbase.visualize import show_img
+    from cvbase.optflow.io import read_flow
     flow = read_flow(flow)
     flow_img = flow2rgb(flow)
     show_img(rgb2bgr(flow_img), win_name, wait_time)

@@ -1,8 +1,5 @@
 import numpy as np
 
-from cvbase.image import read_img, write_img
-from cvbase.opencv import IMREAD_UNCHANGED
-
 
 def _pair_name(filename):
     parts = filename.split('.')
@@ -50,6 +47,8 @@ def read_flow(flow_or_path, quantize=False, *args, **kwargs):
             h = np.fromfile(f, np.int32, 1).squeeze()
             flow = np.fromfile(f, np.float32, w * h * 2).reshape((h, w, 2))
     else:
+        from cvbase.image import read_img
+        from cvbase.opencv import IMREAD_UNCHANGED
         dx_filename, dy_filename = _pair_name(flow_or_path)
         dx = read_img(dx_filename, flag=IMREAD_UNCHANGED)
         dy = read_img(dy_filename, flag=IMREAD_UNCHANGED)
@@ -76,6 +75,7 @@ def write_flow(flow, filename, quantize=False, *args, **kwargs):
             flow.tofile(f)
             f.flush()
     else:
+        from cvbase.image import write_img
         dx, dy = quantize_flow(flow, *args, **kwargs)
         dx_filename, dy_filename = _pair_name(filename)
         write_img(dx, dx_filename)

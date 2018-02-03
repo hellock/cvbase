@@ -35,6 +35,7 @@ import cvbase
 extensions = [
     'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode'
 ]
+autodoc_mock_imports = ['cv2']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -51,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'cvbase'
-copyright = '2017, Kai Chen'
+copyright = '2017-2018, Kai Chen'
 author = 'Kai Chen'
 
 # The version info for the project you're documenting, acts as replacement for

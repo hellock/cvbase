@@ -21,6 +21,7 @@ video
 ----------
 .. automodule:: cvbase.video
     :members:
+    :exclude-members: VideoWriter_fourcc
 
 timer
 ----------

@@ -232,3 +232,21 @@ class TestImage(object):
             cvb.pad_img(img, (5, 5), 0)
         with pytest.raises(AssertionError):
             cvb.pad_img(img, (5, 5), [0, 1])
+
+    def test_rotate_img(self):
+        img = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).astype(np.uint8)
+        assert_array_equal(cvb.rotate_img(img, 0), img)
+        img_r = np.array([[7, 4, 1], [8, 5, 2], [9, 6, 3]])
+        assert_array_equal(cvb.rotate_img(img, 90), img_r)
+        img_r = np.array([[3, 6, 9], [2, 5, 8], [1, 4, 7]])
+        assert_array_equal(cvb.rotate_img(img, -90), img_r)
+
+        img = np.array([[1, 2, 3, 4], [5, 6, 7, 8]]).astype(np.uint8)
+        img_r = np.array([[0, 6, 2, 0], [0, 7, 3, 0]])
+        assert_array_equal(cvb.rotate_img(img, 90), img_r)
+        img_r = np.array([[1, 0, 0, 0], [2, 0, 0, 0]])
+        assert_array_equal(cvb.rotate_img(img, 90, center=(0, 0)), img_r)
+        img_r = np.array([[255, 6, 2, 255], [255, 7, 3, 255]])
+        assert_array_equal(cvb.rotate_img(img, 90, border_value=255), img_r)
+        img_r = np.array([[5, 1], [6, 2], [7, 3], [8, 4]])
+        assert_array_equal(cvb.rotate_img(img, 90, auto_bound=True), img_r)

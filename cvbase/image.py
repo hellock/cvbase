@@ -1,3 +1,5 @@
+from __future__ import division
+
 from os import path
 
 import cv2
@@ -363,3 +365,46 @@ def pad_img(img, shape, pad_val):
     pad[...] = pad_val
     pad[:img.shape[0], :img.shape[1], ...] = img
     return pad
+
+
+def rotate_img(img,
+               angle,
+               center=None,
+               scale=1.0,
+               border_value=0,
+               auto_bound=False):
+    """Rotate an image
+
+    Args:
+        img(ndarray or str): image to be rotated
+        angle(float): rotation angle in degrees, positive values mean
+            clockwise rotation
+        center(tuple): center of the rotation in the source image, by default
+            it is the center of the image.
+        scale(float): isotropic scale factor
+        border_value(int): border value
+        auto_bound(bool): whether to adjust the image size to cover the whole
+            rotated image
+
+    Returns:
+        ndarray: rotated image
+    """
+    if center is not None and auto_bound:
+        raise ValueError('`auto_bound` conflicts with `center`')
+    img = read_img(img)
+    h, w = img.shape[:2]
+    if center is None:
+        center = ((w - 1) / 2, (h - 1) / 2)
+    assert isinstance(center, tuple)
+    matrix = cv2.getRotationMatrix2D(center, -angle, scale)
+    if auto_bound:
+        cos = np.abs(matrix[0, 0])
+        sin = np.abs(matrix[0, 1])
+        new_w = h * sin + w * cos
+        new_h = h * cos + w * sin
+        matrix[0, 2] += (new_w - w) / 2
+        matrix[1, 2] += (new_h - h) / 2
+        w = int(np.round(new_w))
+        h = int(np.round(new_h))
+    rotated = cv2.warpAffine(img, matrix, (w, h), borderValue=border_value)
+    return rotated

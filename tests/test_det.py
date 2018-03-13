@@ -415,13 +415,32 @@ class TestEval(object):
 
 
 def test_read_labels():
-    label_names = ['a', 'b', 'c']
-    assert cvb.read_labels(label_names) == label_names
+    # dataset name
     voc_labels = [
         'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat',
         'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person',
         'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor'
     ]
-    assert cvb.read_labels('voc') == voc_labels
+    for dataset in ['voc', 'pascal_voc', 'voc07', 'voc12']:
+        labels = cvb.read_labels(dataset)
+        assert labels == voc_labels
+    for dataset in ['coco', 'ms_coco']:
+        labels = cvb.read_labels('coco')
+        assert isinstance(labels, list) and len(labels) == 80
+    for dataset in ['det', 'imagenet_det', 'ilsvrc_det']:
+        labels = cvb.read_labels(dataset)
+        assert isinstance(labels, list) and len(labels) == 200
+    for dataset in ['vid', 'imagenet_vid', 'ilsvrc_vid']:
+        coco_labels = cvb.read_labels(dataset)
+        assert isinstance(coco_labels, list) and len(coco_labels) == 30
+    with pytest.raises(ValueError):
+        cvb.read_labels('not_a_dataset')
+    # list
+    label_names = ['a', 'b', 'c']
+    assert cvb.read_labels(label_names) == label_names
+    # filename
     label_file = os.path.join(os.path.dirname(__file__), 'data/voc_labels.txt')
     assert cvb.read_labels(label_file) == voc_labels
+    # exception
+    with pytest.raises(TypeError):
+        cvb.read_labels(1)

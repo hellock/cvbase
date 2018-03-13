@@ -75,20 +75,33 @@ def coco_labels():
     ]
 
 
-def read_labels(file_or_labels):
+def read_labels(dataset_or_file):
     """Read labels from file or list"""
-    if file_or_labels in ['voc', 'voc07', 'voc12']:
-        return voc_labels()
-    elif file_or_labels in ['det', 'vid']:
-        return eval(file_or_labels + '_labels()')
-    if isinstance(file_or_labels, list):
-        label_names = file_or_labels
-    elif isinstance(file_or_labels, str):
-        try:
-            with open(file_or_labels, 'r') as fin:
-                label_names = [line.rstrip('\n') for line in fin]
-        except:
-            raise ValueError(
-                'Unrecognized dataset: "{}", it should be either a dataset '
-                'name or filename or a list of labels'.format(file_or_labels))
-    return label_names
+    dataset_aliases = {
+        'voc': ['voc', 'pascal_voc', 'voc07', 'voc12'],
+        'det': ['det', 'imagenet_det', 'ilsvrc_det'],
+        'vid': ['vid', 'imagenet_vid', 'ilsvrc_vid'],
+        'coco': ['coco', 'ms_coco']
+    }
+    name_map = {}
+    for name, aliases in dataset_aliases.items():
+        for alias in aliases:
+            name_map[alias] = name
+
+    if isinstance(dataset_or_file, str):
+        if dataset_or_file in name_map:
+            labels = eval(name_map[dataset_or_file] + '_labels()')
+        else:
+            try:
+                with open(dataset_or_file, 'r') as fin:
+                    labels = [line.rstrip('\n') for line in fin]
+            except:
+                raise ValueError(
+                    'Unrecognized dataset: "{}", it is neither a dataset name'
+                    ' or filename'.format(dataset_or_file))
+    elif isinstance(dataset_or_file, list):
+        labels = dataset_or_file
+    else:
+        raise TypeError('"dataset_or_file" should be a str or list, not "{}"'.
+                        format(type(dataset_or_file)))
+    return labels

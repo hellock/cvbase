@@ -1,13 +1,13 @@
 import cv2
 
 
-def use_opencv3():
-    return cv2.__version__.split('.')[0] == '3'
+def use_opencv2():
+    return cv2.__version__.split('.')[0] == '2'
 
 
-USE_OPENCV3 = use_opencv3()
+USE_OPENCV2 = use_opencv2()
 
-if USE_OPENCV3:
+if not USE_OPENCV2:
     from cv2 import IMREAD_COLOR, IMREAD_GRAYSCALE, IMREAD_UNCHANGED
     from cv2 import INTER_MAX, WARP_FILL_OUTLIERS, WARP_INVERSE_MAP
 else:

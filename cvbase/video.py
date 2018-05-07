@@ -8,10 +8,10 @@ from os import path
 import cv2
 
 from cvbase.io import check_file_exist, mkdir_or_exist, scandir
-from cvbase.opencv import USE_OPENCV3
+from cvbase.opencv import USE_OPENCV2
 from cvbase.progress import track_progress
 
-if USE_OPENCV3:
+if not USE_OPENCV2:
     from cv2 import (CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FPS,
                      CAP_PROP_FRAME_COUNT, CAP_PROP_FOURCC,
                      CAP_PROP_POS_FRAMES, VideoWriter_fourcc)

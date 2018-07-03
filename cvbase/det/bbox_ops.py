@@ -42,7 +42,7 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou'):
         if mode == 'iou':
             union = area1[i] + area2 - overlap
         else:
-            union = (area1[i] - overlap) if not exchange else (area2 - overlap)
+            union = area1[i] if not exchange else area2
         ious[i, :] = overlap / union
     if exchange:
         ious = ious.T

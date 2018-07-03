@@ -283,9 +283,18 @@ class TestEval(object):
         bbox2 = np.array([[75, 75, 150, 150],
                           [100, 100, 150, 150],
                           [150, 150, 200, 200]])  # yapf: disable
-        result = np.array([[0.08778081, 0.00019227, 0.]])
-        assert_array_almost_equal(cvb.bbox_overlaps(bbox1, bbox2), result)
-        assert_array_almost_equal(cvb.bbox_overlaps(bbox2, bbox1), result.T)
+        iou_result = np.array([[0.08778081, 0.00019227, 0.]])
+        iof_result = np.array([[0.25990004, 0.00038447, 0.]])
+        iof_result_t = np.array([[0.11703601, 0.00038447, 0.]]).T
+        assert_array_almost_equal(cvb.bbox_overlaps(bbox1, bbox2), iou_result)
+        assert_array_almost_equal(
+            cvb.bbox_overlaps(bbox2, bbox1), iou_result.T)
+        assert_array_almost_equal(
+            cvb.bbox_overlaps(bbox1, bbox2, mode='iof'), iof_result)
+        assert_array_almost_equal(
+            cvb.bbox_overlaps(bbox2, bbox1, mode='iof'), iof_result_t)
+        with pytest.raises(AssertionError):
+            cvb.bbox_overlaps(bbox1, bbox2, mode='invalid mode')
 
     def test_set_recall_param(self):
         nums, ious = cvb.set_recall_param(300, None)

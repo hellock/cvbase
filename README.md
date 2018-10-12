@@ -1,3 +1,4 @@
+# Deprecated! Please use [mmcv](https://github.com/open-mmlab/mmcv) instead.
 # Introduction
 
 [![PyPI Version](https://img.shields.io/pypi/v/cvbase.svg)](https://pypi.python.org/pypi/cvbase)
